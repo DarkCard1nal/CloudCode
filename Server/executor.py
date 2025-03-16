@@ -1,7 +1,7 @@
 import subprocess
 import os
 import uuid
-from config import Config
+from Server.config import Config
 
 
 class CodeExecutor:

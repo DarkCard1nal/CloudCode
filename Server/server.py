@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from config import Config
+from Server.config import Config
 from executor import CodeExecutor
 import threading
 
