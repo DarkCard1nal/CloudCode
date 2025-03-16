@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from Server.config import Config
-from executor import CodeExecutor
+from Server.executor import CodeExecutor
 import threading
 
 
