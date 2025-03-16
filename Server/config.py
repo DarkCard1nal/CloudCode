@@ -6,6 +6,7 @@ class Config:
 	PORT = 5000
 	DEBUG = True
 	EXECUTION_TIMEOUT = 10  # in sec
+	GRACE_PERIOD = 2  # Additional time in seconds after timeout in sec
 
 	@staticmethod
 	def init():

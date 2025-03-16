@@ -8,3 +8,6 @@ if __name__ == "__main__":
 
 	# Sending files in parallel
 	client.send_parallel()
+
+	# Sending infinite task
+	client.send_single_task("Tasks/.infinite_task.py")
