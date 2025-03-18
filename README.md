@@ -60,6 +60,21 @@ The `Config` class defines the client-side settings.
     python run_server.py
     ```
 
+## How to Run Prometheus
+
+1. Download Prometheus from the official website:
+    ```sh
+    https://prometheus.io/download/
+    ```
+2. Unzip and extract prometheus.exe from the downloaded archive to the Prometheus folder.
+
+3. Open a terminal from the Prometheus folder and run the script:
+    ```sh
+    ./prometheus --config.file=prometheus.yml
+    ```
+
+4. Open the address `http://127.0.0.1:9090/query` on the browser to see the Prometheus window.
+
 ## How to Run the Client
 
 Run the client script to send a Python file to the server:
@@ -67,6 +82,23 @@ Run the client script to send a Python file to the server:
 ```sh
 python run_client.py
 ```
+
+## How to Run Grafana
+
+1. Download Grafana from the official website:
+    ```sh
+    https://grafana.com/grafana/download
+    ```
+
+2. Install the program on your computer.
+
+3. Open the address `http://127.0.0.1:3000/login` on the browser to see the Grafana login window.
+
+4. Enter "admin" in the login and password fields, then change the password.
+
+5. Go to Connections, then to Data sources and choose "Prometheus" as data source. After that enter `http://127.0.0.1:9090` in Connection field and press "Save & test"
+
+6. In the "Queries" field, enter the necessary PromQL queries.
 
 ## Task Execution
 
