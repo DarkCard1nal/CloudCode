@@ -14,7 +14,6 @@ def is_server_running():
     except Exception:
         return False
 
-# Перевірка, що сервер запущений і готовий для клієнтських тестів
 @given('the server is running for client tests')
 def step_impl(context):
     for _ in range(10):
@@ -23,7 +22,6 @@ def step_impl(context):
         time.sleep(0.5)
     assert False, "Server is not running after multiple attempts"
 
-# Ініціалізація клієнта
 @given('the client is initialized')
 def step_impl(context):
     context.client = CloudComputeClient()
@@ -34,34 +32,28 @@ def step_impl(context):
         except Exception:
             pass
 
-# Відправка завдань послідовно
 @when('I send tasks sequentially')
 def step_impl(context):
     context.client.send_sequential()
 
-# Відправка завдань паралельно
 @when('I send tasks in parallel')
 def step_impl(context):
     context.client.send_parallel()
 
-# Відправка нескінченного завдання
 @when('I send an infinite task')
 def step_impl(context):
-    # Використовуємо існуюче нескінченне завдання
     try:
         context.client.send_single_task('Tasks/.infinite_task.py')
     except Exception as e:
         context.error = str(e)
 
-# Перевірка успішного відправлення всіх завдань
 @then('all tasks should be sent successfully')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
-    assert "Error:" not in output or "Error: None" in output, "Знайдено повідомлення про помилку у виводі"
-    assert "Result for" in output or "Result:" in output, "Не знайдено результатів виконання"
-    assert "code 4" not in output and "code 5" not in output, "Знайдено коди помилок у виводі"
+    assert "Error:" not in output or "Error: None" in output, "Error message found in output"
+    assert "Result for" in output or "Result:" in output, "No execution results found"
+    assert "code 4" not in output and "code 5" not in output, "Error codes found in output"
 
-# Перевірка отримання результатів для кожного завдання
 @then('I should receive results for each task')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
@@ -72,41 +64,33 @@ def step_impl(context):
     for text in check_texts:
         assert text in output, f"Expected element '{text}' not found in output"
 
-# Перевірка, що завдання обробляються по порядку
 @then('the tasks should be processed in order')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
     assert "Sending files one by one" in output, "Not using sequential execution"
     assert "Total execution time of sequential requests" in output, "Sequential execution summary not found"
 
-# Перевірка, що завдання обробляються паралельно
 @then('the tasks should be processed concurrently')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
     assert "Sending files in parallel" in output, "Not using parallel execution"
     assert "Total execution time of parallel requests" in output, "Parallel execution summary not found"
 
-# Перевірка успішного відправлення завдання
 @then('the task should be sent successfully')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
     assert "Sending single task:" in output, "Task was not sent"
 
-# Перевірка отримання ідентифікатора завдання
 @then('I should receive a task ID')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
     assert "Result for" in output or "--- Result" in output, "No result information found"
 
-# Перевірка, що завдання виконується на сервері
 @then('the task should be running on the server')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
     assert "Error:" in output or "Execution time out" in output, "No error or timeout information found"
 
-# Тести на негативні сценарії
-
-# Відправка пошкодженого файлу
 @when('I send a corrupted file')
 def step_impl(context):
     with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as f:
@@ -118,25 +102,21 @@ def step_impl(context):
     except Exception as e:
         context.error = str(e)
 
-# Перевірка, що клієнт коректно обробляє помилки
 @then('the client should handle the error gracefully')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
-    assert "Error:" in output or hasattr(context, 'error'), "Помилка не була коректно опрацьована"
+    assert "Error:" in output or hasattr(context, 'error'), "Error was not handled correctly"
 
-# Перевірка, що клієнт отримує повідомлення про помилку
 @then('I should receive an error message')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
-    assert "Error:" in output or hasattr(context, 'error'), "Повідомлення про помилку не знайдено"
+    assert "Error:" in output or hasattr(context, 'error'), "Error message not found"
 
-# Імітація недоступності сервера
 @given('the server is not responding')
 def step_impl(context):
     context.original_url = context.client.api_url
     context.client.api_url = "http://localhost:9999"
 
-# Спроба відправити завдання при недоступному сервері
 @when('I try to send a task')
 def step_impl(context):
     try:
@@ -151,19 +131,16 @@ def step_impl(context):
         if hasattr(context, 'original_url'):
             context.client.api_url = context.original_url
 
-# Перевірка, що клієнт повідомляє про проблеми з'єднання
 @then('the client should report connection issues')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
-    assert "Error:" in output or hasattr(context, 'error'), "Клієнт не повідомив про проблеми з'єднання"
+    assert "Error:" in output or hasattr(context, 'error'), "Client did not report connection issues"
 
-# Перевірка наявності детального зворотного зв'язку про помилку
 @then('provide proper error feedback')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
-    assert "Error:" in output or hasattr(context, 'error'), "Відсутній зворотній зв'язок про помилку"
+    assert "Error:" in output or hasattr(context, 'error'), "No error feedback provided"
 
-# Відправка 10 завдань одночасно
 @when('I send "10" tasks simultaneously')
 def step_impl_10_tasks(context):
     count = 10
@@ -187,36 +164,30 @@ def step_impl_10_tasks(context):
     context.end_time = time.time()
     context.execution_time = context.end_time - context.start_time
 
-# Перевірка, що час відповіді знаходиться в допустимих межах
 @then('the response time should be within acceptable limits')
 def step_impl(context):
     avg_time = context.execution_time / context.task_count
-    assert avg_time < 10, f"Середній час відповіді перевищує ліміт: {avg_time} секунд"
+    assert avg_time < 10, f"Average response time exceeds limit: {avg_time} seconds"
 
-# Відправка завдання, що перевищує ліміт часу
 @when('I send a task that exceeds time limit')
 def step_impl(context):
-    # Використовуємо існуюче нескінченне завдання
     try:
         context.client.send_single_task('Tasks/.infinite_task.py')
     except Exception as e:
         context.error = str(e)
 
-# Перевірка, що клієнт коректно обробляє таймаут
 @then('the client should handle the timeout gracefully')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
     timeout_indicators = ["Error:", "Execution time out", "timed out", "timeout"]
-    assert any(indicator in output for indicator in timeout_indicators) or hasattr(context, 'error'), "Клієнт не опрацював таймаут належним чином"
+    assert any(indicator in output for indicator in timeout_indicators) or hasattr(context, 'error'), "Client did not handle timeout properly"
 
-# Перевірка наявності відповідного повідомлення про таймаут
 @then('show appropriate timeout message')
 def step_impl(context):
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
     timeout_indicators = ["Error:", "Execution time out", "timed out", "timeout"]
-    assert any(indicator in output for indicator in timeout_indicators) or hasattr(context, 'error'), "Повідомлення про таймаут не знайдено"
+    assert any(indicator in output for indicator in timeout_indicators) or hasattr(context, 'error'), "Timeout message not found"
 
-# Перевірка, що клієнт завершив кілька завдань
 @given('the client has completed several tasks')
 def step_impl(context):
     for _ in range(3):
@@ -226,9 +197,8 @@ def step_impl(context):
             context.client.send_single_task(file_path)
     
     output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
-    assert "Result for" in output, "Клієнт не виконав завдання перед реініціалізацією"
+    assert "Result for" in output, "Client did not complete tasks before reinitialization"
 
-# Реініціалізація клієнта
 @when('I reinitialize the client')
 def step_impl(context):
     context.previous_output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
@@ -239,7 +209,6 @@ def step_impl(context):
     
     context.client = CloudComputeClient()
 
-# Перевірка, що клієнт готовий до нових завдань
 @then('the client should be ready for new tasks')
 def step_impl(context):
     with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as f:
@@ -252,11 +221,10 @@ def step_impl(context):
     except Exception:
         success = False
     
-    assert success, "Клієнт не готовий до виконання нових завдань після реініціалізації"
+    assert success, "Client is not ready for new tasks after reinitialization"
 
-# Перевірка, що результати попередніх завдань очищені
 @then('previous task results should be cleared')
 def step_impl(context):
     current_output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
-    assert "New task after reinitialization" in current_output, "Новий вивід не містить результати нових завдань"
-    assert context.previous_output not in current_output, "Результати попередніх завдань не очищені"
+    assert "New task after reinitialization" in current_output, "New output does not contain results of new tasks"
+    assert context.previous_output not in current_output, "Previous task results were not cleared"
