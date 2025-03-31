@@ -14,7 +14,8 @@ class CodeExecutionServer:
 	
 	def setup_metrics(self):
 		"""Sets a default value to ensure it always returns data."""
-		self.metrics.failure_count.labels(endpoint="404").inc()
+		for code in Config.ERRORS:
+			self.metrics.failure_count.labels(endpoint=str(code)).inc(0)
 
 	def setup_routes(self):
 		"""Set up API routes."""
@@ -25,28 +26,37 @@ class CodeExecutionServer:
 			start_time = time.time()
 			self.metrics.request_count.labels(method="POST", endpoint="/execute").inc()
 
+			if "file" not in request.files:
+				self.metrics.failure_count.labels(endpoint="400").inc()
+				return jsonify({"error": "No file"}), 400
+
 			result = CodeExecutor.execute_code(request.files.get("file"))
 
 			latency = time.time() - start_time
 			self.metrics.request_latency.labels(endpoint="/execute").observe(latency)
 
-			if not result.get("error"):
-				self.metrics.success_count.labels(endpoint="/execute").inc()
+			if result.get("error"):
+				status_code = result.get("status")
+				if status_code in Config.ERRORS:
+					self.metrics.failure_count.labels(endpoint=str(status_code)).inc()
+				return jsonify(result), status_code
 			else:
-				self.metrics.failure_count.labels(endpoint="/execute").inc()
-
-			return jsonify(result)
+				self.metrics.success_count.labels(endpoint="/execute").inc()
+				return jsonify(result), 200
 		
 		@self.app.route("/metrics", methods=["GET"])
 		def metrics():
 			"""Endpoint for Prometheus to scrape metrics."""
 			return self.metrics.get_metrics()
 		
-		@self.app.errorhandler(404)
-		def not_found(error):
-			"""Handles 404 errors and registers them in failure metrics."""
-			self.metrics.failure_count.labels(endpoint="404").inc()
-			return jsonify({"error": "Endpoint not found"}), 404
+		for code in Config.ERRORS:
+			self.app.register_error_handler(code, self.handle_errors)
+
+	def handle_errors(self, error):
+		status_code = getattr(error, "code", None)
+		if status_code in Config.ERRORS:
+			self.metrics.failure_count.labels(endpoint=str(status_code)).inc()
+		return jsonify({"error": f"HTTP {status_code} error"}), status_code
 
 	def run(self):
 		"""Launches the server in multi-threaded mode."""
