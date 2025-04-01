@@ -4,15 +4,13 @@ _Created for the course "Methods and technologies for ensuring the quality of so
 
 Client-server application of cloud computing Python 3.10.6 code.
 
+**[Docker Hub](https://hub.docker.com/r/card1nal/cloud_code_server)**
+
 ---
 
 ## Description
 
-This project provides a secure environment for executing Python scripts in a separate directory. The server receives a script file, executes it in a separate folder, and returns the result, errors, and all generated files.
-
-## Warning!
-
-This project does not yet check the code before execution, so it may be unsafe to execute, it is recommended to use isolated runtime environments such as Docker to execute potentially unsafe code.
+This project provides a secure environment for executing Python scripts in a separate directory in a separate Docker container, making code execution safe for the host compared to executing directly. The server receives the script file, executes it in a separate folder in the container and returns the result, errors and all generated files.
 
 ## Technologies Used
 
@@ -20,6 +18,7 @@ This project does not yet check the code before execution, so it may be unsafe t
 -   **Flask** (for the API server)
 -   **subprocess** (for running scripts securely)
 -   **Threading** (to handle output buffering efficiently)
+-   **Docker** (for easy server deployment and secure code execution)
 
 ## Project Structure
 
@@ -34,30 +33,72 @@ This project does not yet check the code before execution, so it may be unsafe t
 
 The `Config` class defines the server's settings and configurations.
 
--   `UPLOAD_FOLDER = "uploads"` – Directory where uploaded files (code scripts) will be stored temporarily.
+-   `UPLOAD_FOLDER = "/uploads"` – Directory where uploaded files (code scripts) will be stored temporarily related to volumes 'uploads' in docker-compose.yaml.
 -   `PORT = 5000` – Port on which the server runs.
--   `DEBUG = True` – Enables debug mode for development purposes.
+-   `DEBUG` – Variable indicates whether debugging mode is enabled for development purposes, defaults to `false`.
 -   `EXECUTION_TIMEOUT = 10` – Maximum execution time for a script (in seconds).
--   `GRACE_PERIOD = 2` – Additional time (in seconds) after reaching the execution timeout before forcefully stopping the script.
 -   `init()` – A static method that ensures the `UPLOAD_FOLDER` exists before execution.
 
 ### **Client Configuration (`Config` class)**
 
 The `Config` class defines the client-side settings.
 
--   `API_URL = "http://127.0.0.1:5000/execute"` – The endpoint where the client sends code execution requests.
+-   `API_URL = "http://localhost:5000/execute"` – The endpoint where the client sends code execution requests.
 -   `API_KEY = "my_secret_key"` – A placeholder for an API key (not used for authentication but can be extended for security).
 -   `TASKS_FOLDER = "Tasks"` – Directory where task files (code scripts) are stored before sending them to the server.
 
 ## How to Run the Server
 
-1. Install dependencies:
-    ```sh
-    pip install -r requirements.txt
+## How to Run the Server
+
+### Step 1: Build the Image (Optional)
+
+If you skip this step, the image `card1nal/cloud_code_server:latest` from Docker Hub will be used.
+
+To build the image locally, use the following command:
+
+```sh
+docker build -t <YOUR-USER-NAME>/cloud_code_server:latest -t <YOUR-USER-NAME>/cloud_code_server:X --build-arg VERSION=X .
+```
+
+-   Replace `X` with your desired version.
+-   Update the `image` field in `docker-compose.yaml` to:
+    ```yaml
+    image: <YOUR-USER-NAME>/cloud_code_server:latest
     ```
-2. Start the Flask server:
+
+### Step 2: Start the Server
+
+To run the server in different modes, use:
+
+-   **Production (release) mode**
     ```sh
-    python run_server.py
+    docker compose up -d
+    ```
+-   **Development mode**
+    ```sh
+    docker compose up develop
+    ```
+
+The `-d` flag runs the containers in the background.
+
+### Step 3: Stop and Restart the Server
+
+-   Stop all running containers:
+    ```sh
+    docker compose down
+    ```
+-   Restart the server container:
+    ```sh
+    docker compose restart server
+    ```
+-   Restart the development container:
+    ```sh
+    docker compose restart develop
+    ```
+-   **Fully remove all containers, volumes, and orphaned containers**:
+    ```sh
+    docker compose down --volumes --remove-orphans
     ```
 
 ## How to Run the Client

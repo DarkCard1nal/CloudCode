@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  server:
+    # Production (release) mode: minimum set of mounts,
+    # all data (e.g. uploads) is stored in volume.
+    image: card1nal/cloud_code_server:latest
+    ports:
+      - "5000:5000"
+    volumes:
+      - uploads:/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DEBUG_MODE=false
+      - WATCH_MODE=false
+
+  develop:
+    # Development mode: debugging is enabled, source files are mounted,
+    # so that changes are immediately reflected without rebuilding the container.
+    image: card1nal/cloud_code_server:latest
+    ports:
+      - "5000:5000"
+    volumes:
+      - uploads:/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DEBUG_MODE=true
+      - WATCH_MODE=true
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    profiles:
+      - develop
+
+volumes:
+  uploads:
+    name: cloudcode_uploads
+    driver: local

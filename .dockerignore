@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+.git
+.venv
+venv/
+Server/__pycache__/

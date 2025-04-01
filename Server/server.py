@@ -20,4 +20,4 @@ class CodeExecutionServer:
 
 	def run(self):
 		"""Launches the server in multi-threaded mode."""
-		self.app.run(debug=Config.DEBUG, port=Config.PORT, threaded=True)
+		self.app.run(host="0.0.0.0", port=Config.PORT, threaded=True)

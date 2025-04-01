@@ -34,11 +34,16 @@ class CloudComputeClient:
 
 		# Displaying files received in response
 		if "files" in result and result["files"]:
+			# Sort the files by filename
+			result["files"].sort(key=lambda x: x["filename"])
+
 			print("Generated Files:")
+
 			for file in result["files"]:
 				print(f"\nFile: {file['filename']}\n--- Content ---")
 				content_lines = file["content"].splitlines()
 
+				# If there are more than 10 lines in the content, display the first 5 and last 5
 				if len(content_lines) > 10:
 					display_lines = (
 					    content_lines[:5] + ["..."] + content_lines[-5:]
@@ -46,8 +51,10 @@ class CloudComputeClient:
 				else:
 					display_lines = content_lines
 
+				# Print the lines
 				for line in display_lines:
 					print(line)
+
 			print("\n-------------------\n")
 		else:
 			print("No additional files generated.\n")
@@ -55,7 +62,9 @@ class CloudComputeClient:
 		# Output from the executed code
 		if "output" in result:
 			print("Output:")
+
 			output_lines = result["output"].splitlines()
+
 			if len(output_lines) > 10:
 				display_output = output_lines[:5] + ["..."] + output_lines[-5:]
 			else:
@@ -63,6 +72,7 @@ class CloudComputeClient:
 
 			for line in display_output:
 				print(line)
+
 			print("\n-------------------\n")
 
 		# Display of errors
