@@ -106,4 +106,75 @@ Feature: Python Security Checker
 		When I check the file for security issues
 		Then the file should be marked as unsafe
 		And the Slack tokens should be removed
+		And a safe version of the file should be created
+
+	Scenario: Check insecure cryptographic practices
+		Given I have a Python file with insecure cryptographic practices
+		When I check the file for security issues
+		Then the file should be marked as unsafe
+		And the insecure cryptographic practices should be detected
+		And a safe version of the file should be created
+
+	Scenario: Check ReDOS vulnerabilities
+		Given I have a Python file with ReDOS vulnerability
+		When I check the file for security issues
+		Then the file should be marked as unsafe
+		And the ReDOS vulnerabilities should be detected
+		And a safe version of the file should be created
+
+	Scenario: Check template injection vulnerabilities
+		Given I have a Python file with template injection vulnerabilities
+		When I check the file for security issues
+		Then the file should be marked as unsafe
+		And the template injection vulnerabilities should be detected
+		And a safe version of the file should be created
+		
+	Scenario: Check SSRF vulnerabilities
+		Given I have a Python file with SSRF vulnerabilities
+		When I check the file for security issues
+		Then the file should be marked as unsafe
+		And the SSRF vulnerabilities should be detected
+		And a safe version of the file should be created
+
+	Scenario: Check container escape attempts
+		Given I have a Python file with container escape attempts
+		When I check the file for security issues
+		Then the file should be marked as unsafe
+		And the container escape attempts should be detected
+		And a safe version of the file should be created
+
+	Scenario: Check file that exceeds maximum size
+		Given I have a Python file that exceeds maximum size
+		When I try to check the file for security issues
+		Then I should get a "exceeds maximum allowed size" error
+		
+	Scenario: Check file with invalid encoding
+		Given I have a Python file with invalid UTF-8 encoding
+		When I try to check the file for security issues
+		Then I should get a "encoding" error
+
+	Scenario: Check safe subprocess calls in Docker mode
+		Given the Python Security Checker is initialized in Docker mode
+		Given I have a Python file with safe subprocess calls
+		When I check the file for security issues
+		Then the file should be considered safe
+		And the safe subprocess calls should be preserved
+
+	Scenario: Check code with safe patterns similar to unsafe ones
+		Given I have a Python file with safe patterns similar to unsafe ones
+		When I check the file for security issues
+		Then the file should be considered safe
+		And the safe patterns should be preserved
+
+	Scenario: Check multi-layer code obfuscation
+		Given I have a Python file with multi-layer code obfuscation
+		When I check the file for security issues
+		Then the file should be marked as unsafe
+		And the complex obfuscation techniques should be detected
+		And a safe version of the file should be created
+
+	Scenario: Check large file processing time
+		Given I have a large Python file
+		When I check the file for security issues with time measurement
+		Then the processing time should be reasonable
 		And a safe version of the file should be created 

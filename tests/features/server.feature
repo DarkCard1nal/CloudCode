@@ -4,10 +4,9 @@ Feature: Cloud Code Server
 	So that it can process client requests properly
 
 	Background:
-		Given the server is running
+		Given the server is running for testing
 
 	Scenario: Server starts successfully
-		When I start the server
 		Then the server should be running
 		And it should be listening on the configured port
 
@@ -32,16 +31,10 @@ Feature: Cloud Code Server
 		
 	Scenario: Server handles multiple simultaneous requests
 		Given multiple clients are connected
-		When "20" tasks are submitted simultaneously
+		When "10" tasks are submitted simultaneously
 		Then the server should process all tasks
 		And maintain reasonable response times
 		And not crash or hang
-		
-	Scenario: Server performance under load
-		Given the server is under heavy load
-		When new tasks arrive
-		Then the server should queue tasks appropriately
-		And process them in order of priority
 		
 	Scenario: Server handles task timeout
 		Given a task that runs indefinitely

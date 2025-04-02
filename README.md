@@ -109,6 +109,50 @@ Run the client script to send a Python file to the server:
 python run_client.py
 ```
 
+## How to Run Tests
+
+CloudCode includes a set of automated tests for four main components: the client, the server, code security checks, and integration scenarios.
+
+### Testing the Code Security Checker Module (`python_security_checker.py`)
+
+These tests verify the detection and removal of dangerous code:
+
+```sh
+python -m behave tests/features/security_checker.feature
+```
+
+### Testing the Server Component
+
+These tests verify the server functionality for processing requests: 
+
+```sh
+python -m behave tests/features/server.feature
+```
+
+### Testing the Client Component
+
+These tests verify the client functionality for sending tasks: 
+
+```sh
+python -m behave tests/features/client.feature
+```
+
+### Testing the Integration Component
+
+These tests verify the seamless interaction between the client and server components, ensuring tasks are processed efficiently and connections are maintained:
+
+```sh
+python -m behave tests/features/integration.feature
+```
+
+### Running All Tests Together
+
+To run all tests at once, execute:
+
+```sh
+python -m behave tests/features/
+```
+
 ## Task Execution
 
 -   Submitted scripts are saved in a unique directory.
