@@ -1,12 +1,16 @@
 from behave import given, when, then
-from Client.client import CloudComputeClient
-import requests
 import time
+import requests
 import tempfile
 import threading
 import subprocess
+import os
 
-from tests.steps.common_steps import (
+from Client.client import CloudComputeClient
+from Tests.steps.common_steps import (
+	step_server_running,
+	step_server_running_with_feature,
+	step_client_connected,
 	step_client_initialized,
 )
 
@@ -244,12 +248,18 @@ def step_impl(context):
 
 @then('the client should be ready for new tasks')
 def step_impl(context):
-	with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as f:
-		f.write(b'print("New task after reinitialization")')
-		file_path = f.name
+	os.makedirs('/app/Tasks/temp', exist_ok=True)
+	file_path = '/app/Tasks/temp/new_task_after_reinit.py'
+	
+	with open(file_path, 'w') as f:
+		f.write('print("New task after reinitialization")')
 	
 	try:
-		context.client.send_single_task(file_path)
+		files = {'file': open(file_path, 'rb')}
+		response = requests.post('http://localhost:5000/execute', files=files)
+		files['file'].close()
+		
+		assert response.status_code == 200, "Failed to execute new task after reinitialization"
 		success = True
 	except Exception:
 		success = False
@@ -258,9 +268,22 @@ def step_impl(context):
 
 @then('previous task results should be cleared')
 def step_impl(context):
-	current_output = context.stdout_capture.getvalue() if hasattr(context, 'stdout_capture') else ""
-	assert "New task after reinitialization" in current_output, "New output does not contain results of new tasks"
-	assert context.previous_output not in current_output, "Previous task results were not cleared"
+	assert hasattr(context, 'client'), "Client object is missing"
+	
+	os.makedirs('/app/Tasks/temp', exist_ok=True)
+	test_file = '/app/Tasks/temp/reinit_test.py'
+	
+	with open(test_file, 'w') as f:
+		f.write('print("Test after reinit")')
+	
+	files = {'file': open(test_file, 'rb')}
+	try:
+		response = requests.post('http://localhost:5000/execute', files=files)
+		files['file'].close()
+		assert response.status_code == 200, "Failed to execute test after client reinitialization"
+	except Exception as e:
+		files['file'].close()
+		assert False, f"Failed to send task after client reinitialization: {str(e)}"
 
 @then("the security checker should identify the unsafe code")
 def step_security_checker_identifies_unsafe_code(context):

@@ -26,6 +26,7 @@ This project provides a secure environment for executing Python scripts in a sep
 -   `config.py` - Stores (server/client) configuration settings.
 -   `Tasks/` - Directory where submitted scripts are stored and executed.
 -   `Client/` - Example client-side implementation to send scripts to the server.
+-   `Tests/` - Contains various tests for the application.
 
 ## Configuration
 
@@ -109,55 +110,97 @@ Run the client script to send a Python file to the server:
 python run_client.py
 ```
 
-## How to Run Tests
-
-CloudCode includes a set of automated tests for four main components: the client, the server, code security checks, and integration scenarios.
-
-### Testing the Code Security Checker Module (`python_security_checker.py`)
-
-These tests verify the detection and removal of dangerous code:
-
-```sh
-python -m behave tests/features/security_checker.feature
-```
-
-### Testing the Server Component
-
-These tests verify the server functionality for processing requests: 
-
-```sh
-python -m behave tests/features/server.feature
-```
-
-### Testing the Client Component
-
-These tests verify the client functionality for sending tasks: 
-
-```sh
-python -m behave tests/features/client.feature
-```
-
-### Testing the Integration Component
-
-These tests verify the seamless interaction between the client and server components, ensuring tasks are processed efficiently and connections are maintained:
-
-```sh
-python -m behave tests/features/integration.feature
-```
-
-### Running All Tests Together
-
-To run all tests at once, execute:
-
-```sh
-python -m behave tests/features/
-```
-
 ## Task Execution
 
 -   Submitted scripts are saved in a unique directory.
 -   The script runs in a controlled environment with a timeout.
 -   Output, errors, and any created files are returned to the client.
+
+## Running Tests
+
+The project includes three types of tests to ensure quality and functionality:
+
+### Test Structure
+
+- **Unit Tests** (`Tests/unit/`) - Tests for individual components in isolation
+- **Integration Tests** (`Tests/integration/`) - Tests for component interactions
+- **Functional Tests** (`Tests/features/`) - BDD-style tests using Behave
+
+### Prerequisites
+
+- Docker must be installed and running
+- Docker Compose must be installed
+- On Windows: PowerShell
+- On Linux/Mac: Bash
+
+### Running All Tests
+
+To run all tests together:
+
+```sh
+# On Windows
+.\run_tests.ps1
+
+# On Linux/Mac
+./run_tests.sh
+```
+
+### Running Specific Test Types
+
+#### Unit Tests
+```sh
+# On Windows
+.\run_tests.ps1 unit
+
+# On Linux/Mac
+./run_tests.sh unit
+```
+
+#### Integration Tests
+```sh
+# On Windows
+.\run_tests.ps1 integration
+
+# On Linux/Mac
+./run_tests.sh integration
+```
+
+#### Functional Tests
+```sh
+# On Windows
+.\run_tests.ps1 Tests/features
+
+# On Linux/Mac
+./run_tests.sh Tests/features
+```
+
+### Running Individual Test Files
+
+For specific functional tests:
+
+```sh
+# On Windows
+.\run_tests.ps1 Tests/features/client.feature
+
+# On Linux/Mac
+./run_tests.sh Tests/features/client.feature
+```
+
+For specific integration or unit tests, use docker-compose directly:
+
+```sh
+# Run a specific integration test
+docker-compose --profile testing run tests python -m unittest Tests/integration/test_integration_client.py
+
+# Run a specific unit test
+docker-compose --profile testing run tests python -m unittest Tests/unit/test_server.py
+```
+
+### Interpreting Test Results
+
+- A successful test run will display "OK" at the end of the output
+- Failed tests will display "FAILED" along with details about the failures
+- For functional tests, you'll see a summary of scenarios that passed or failed
 
 ## Notes
 

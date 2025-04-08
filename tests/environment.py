@@ -1,7 +1,7 @@
 import os
 from Client.client import CloudComputeClient
 
-from tests.steps.common_steps import step_server_running_with_feature
+from Tests.steps.common_steps import step_server_running_with_feature
 
 def cleanup_resources(context):
 	"""Cleaning up resources after test completion"""
@@ -33,8 +33,8 @@ def cleanup_resources(context):
 
 def before_all(context):
 	"""Function called before all tests"""
-	context.config.paths.append('tests/steps')
-	steps_dir = 'tests/steps'
+	context.config.paths.append('Tests/steps')
+	steps_dir = 'Tests/steps'
 	if os.path.exists(steps_dir):
 		common_steps_path = os.path.join(steps_dir, 'common_steps.py')
 		if os.path.exists(common_steps_path):

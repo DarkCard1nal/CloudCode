@@ -5,7 +5,7 @@ import requests
 import threading
 import tempfile
 from Client.client import CloudComputeClient
-from tests.steps.common_steps import (
+from Tests.steps.common_steps import (
 	step_server_running, 
 	step_server_running_with_feature,
 	step_client_connected,
@@ -78,13 +78,37 @@ def step_continue_processing_tasks(context):
 	if hasattr(context, 'scenario') and getattr(context.scenario, 'skip_reason', None):
 		return
 	
-	with tempfile.NamedTemporaryFile(suffix=".py", delete=False) as temp_file:
-		temp_file.write(b"print('Task after reconnection')")
-		context.temp_file_path = temp_file.name
+	time.sleep(3)
 	
-	result = context.client.send_code(context.temp_file_path)
-	assert "output" in result, "No output in task execution result"
-	assert "Task after reconnection" in result["output"], "Incorrect task output"
+	os.makedirs('/app/Tasks/temp', exist_ok=True)
+	task_file_path = '/app/Tasks/temp/reconnect_task.py'
+	
+	with open(task_file_path, 'w') as f:
+		f.write("print('Task after reconnection')")
+	
+	context.temp_file_path = task_file_path
+	
+	max_retries = 5
+	for attempt in range(max_retries):
+		try:
+			files = {'file': open(task_file_path, 'rb')}
+			response = requests.post('http://localhost:5000/execute', files=files)
+			files['file'].close()
+			
+			if response.status_code == 200:
+				result = response.json()
+				if "output" in result and "Task after reconnection" in result["output"]:
+					return 
+				else:
+					print(f"Attempt {attempt+1}: Response OK but unexpected output: {result}")
+			else:
+				print(f"Attempt {attempt+1}: Unexpected status code: {response.status_code}")
+		except Exception as e:
+			print(f"Attempt {attempt+1}: Error: {str(e)}")
+		
+		time.sleep(2 * (attempt + 1))
+	
+	assert False, "Failed to process task after server restart"
 
 
 @given("the server is running with resource monitoring")

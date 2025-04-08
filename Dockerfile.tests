@@ -1,0 +1,21 @@
+# Use the base Python image
+FROM python:3.10.6-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy project files
+COPY requirements.txt ./
+COPY run_server.py ./
+COPY run_client.py ./
+COPY Server ./Server/
+COPY Client ./Client/
+COPY Tasks ./Tasks/
+COPY Tests ./Tests/
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Default command - run all tests
+# Can be overridden when running the container
+CMD ["python", "-m", "behave", "Tests/features/"] 

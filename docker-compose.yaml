@@ -10,6 +10,7 @@ services:
     volumes:
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./Tasks:/app/Tasks
     environment:
       - DEBUG_MODE=false
       - WATCH_MODE=false
@@ -23,6 +24,7 @@ services:
     volumes:
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./Tasks:/app/Tasks
     environment:
       - DEBUG_MODE=true
       - WATCH_MODE=true
@@ -30,6 +32,20 @@ services:
       - FLASK_DEBUG=1
     profiles:
       - develop
+      
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+    volumes:
+      - ./Tests:/app/Tests
+      - ./Tasks:/app/Tasks
+      - uploads:/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - server
+    profiles:
+      - testing
 
 volumes:
   uploads:

@@ -55,12 +55,30 @@ def step_server_listening_on_port(context):
 
 @given('a valid task file is sent')
 def step_valid_task_file_sent(context):
-	with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as f:
-		f.write(b'print("Valid task")')
-		context.valid_task = f.name
+	os.makedirs('/app/Tasks/temp', exist_ok=True)
+	task_file_path = '/app/Tasks/temp/valid_task.py'
+	
+	with open(task_file_path, 'w') as f:
+		f.write('print("Valid task")')
+	
+	context.valid_task = task_file_path
+	
+	try:
+		files = {'file': open(task_file_path, 'rb')}
+		response = requests.post('http://localhost:5000/execute', files=files)
+		files['file'].close()
+		
+		if response.status_code == 200:
+			context.response = response
+			context.result = response.json()
+	except Exception as e:
+		print(f"Warning: Pre-test request failed: {str(e)}")
 
 @when('the server receives the task')
 def step_server_receives_task(context):
+	if hasattr(context, 'response') and hasattr(context, 'result'):
+		return
+	
 	file_path = context.valid_task if hasattr(context, 'valid_task') else context.invalid_task
 	files = {'file': open(file_path, 'rb')}
 	try:
