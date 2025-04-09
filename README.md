@@ -50,8 +50,6 @@ The `Config` class defines the client-side settings.
 
 ## How to Run the Server
 
-## How to Run the Server
-
 ### Step 1: Build the Image (Optional)
 
 If you skip this step, the image `card1nal/cloud_code_server:latest` from Docker Hub will be used.
@@ -130,70 +128,71 @@ The project includes three types of tests to ensure quality and functionality:
 
 - Docker must be installed and running
 - Docker Compose must be installed
-- On Windows: PowerShell
-- On Linux/Mac: Bash
 
-### Running All Tests
+### Running Tests with Docker Compose
 
-To run all tests together:
+We use Docker Compose profiles to run tests. All test commands are configured directly in the `docker-compose.yml` file, eliminating the need for additional scripts.
+
+#### First-time Setup
+
+Before running tests for the first time, it's recommended to create the necessary Docker volume:
 
 ```sh
-# On Windows
-.\run_tests.ps1
-
-# On Linux/Mac
-./run_tests.sh
+docker volume create cloudcode_uploads
 ```
 
-### Running Specific Test Types
+#### Running All Tests
 
-#### Unit Tests
+To run all tests (unit, integration, and functional):
+
 ```sh
-# On Windows
-.\run_tests.ps1 unit
-
-# On Linux/Mac
-./run_tests.sh unit
+docker-compose --profile testing up tests
 ```
 
-#### Integration Tests
-```sh
-# On Windows
-.\run_tests.ps1 integration
+#### Running Specific Test Types
 
-# On Linux/Mac
-./run_tests.sh integration
+For running only Behave functional tests:
+```sh
+docker-compose --profile testing up tests-behave
 ```
 
-#### Functional Tests
+For running only unit tests:
 ```sh
-# On Windows
-.\run_tests.ps1 Tests/features
-
-# On Linux/Mac
-./run_tests.sh Tests/features
+docker-compose --profile testing up tests-unit
 ```
 
-### Running Individual Test Files
-
-For specific functional tests:
-
+For running only integration tests:
 ```sh
-# On Windows
-.\run_tests.ps1 Tests/features/client.feature
-
-# On Linux/Mac
-./run_tests.sh Tests/features/client.feature
+docker-compose --profile testing up tests-integration
 ```
 
-For specific integration or unit tests, use docker-compose directly:
+#### Running Individual Test Files
+
+For running specific test files or feature files:
 
 ```sh
+# Run a specific feature file
+docker-compose --profile testing run --rm tests-behave behave Tests/features/client.feature
+
 # Run a specific integration test
-docker-compose --profile testing run tests python -m unittest Tests/integration/test_integration_client.py
+docker-compose --profile testing run --rm tests-integration python -m unittest Tests/integration/test_integration_client.py
 
 # Run a specific unit test
-docker-compose --profile testing run tests python -m unittest Tests/unit/test_server.py
+docker-compose --profile testing run --rm tests-unit python -m unittest Tests/unit/test_server.py
+```
+
+### Cleanup After Testing
+
+After running tests, you can clean up containers with:
+
+```sh
+docker-compose --profile testing down
+```
+
+To remove orphan containers (recommended occasionally):
+
+```sh
+docker-compose --profile testing down --remove-orphans
 ```
 
 ### Interpreting Test Results

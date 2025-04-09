@@ -10,18 +10,21 @@ WORKDIR /app
 COPY requirements.txt ./
 COPY run_server.py ./
 COPY Server ./Server/
+COPY Client ./Client/
+COPY Tests ./Tests/
 
 # Copy requirements.txt into the container
 COPY requirements.txt .
 
 # Install the Python dependencies specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir behave pytest
 
 # Expose the port the server will run on
 EXPOSE 5000
 
 # (Optional) Declare a volume for persistent uploads
-# VOLUME [ "/app/uploads" ]
+VOLUME [ "/app/uploads" ]
 
 # Define build arguments and environment variable for debug mode
 ARG DEBUG=false
@@ -30,6 +33,9 @@ ARG WATCH=false
 ENV WATCH_MODE=${WATCH}
 ARG VERSION=latest
 LABEL version=$VERSION
+
+# Set Python path for imports
+ENV PYTHONPATH=/app
 
 # Run the server. If DEBUG_MODE is true, the --debug flag is added.
 # You can also rely on Flask's auto-reload via FLASK_ENV and FLASK_DEBUG environment variables.

@@ -33,21 +33,46 @@ services:
     profiles:
       - develop
       
-  tests:
+  # Basic configuration for all test services
+  test-base: &test-base
+    image: card1nal/cloud_code_server:latest
     build:
       context: .
-      dockerfile: Dockerfile.tests
+      dockerfile: Dockerfile
     volumes:
-      - ./Tests:/app/Tests
-      - ./Tasks:/app/Tasks
+      - .:/app
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - APP_DEBUG=true
+      - PYTHONPATH=/app
+      - DEBUG_MODE=true
     depends_on:
       - server
     profiles:
       - testing
+      
+  # Running all tests
+  tests:
+    <<: *test-base
+    command: ["/bin/bash", "-c", "echo 'Running all tests...' && echo 'Running behave tests...' && behave Tests/features && echo 'Running unit tests...' && python Tests/unit/run_unit_tests.py && echo 'Running integration tests...' && python -m unittest discover -s Tests/integration"]
+
+  # Running only behave tests
+  tests-behave:
+    <<: *test-base
+    command: ["behave", "Tests/features"]
+    
+  # Running only unit tests
+  tests-unit:
+    <<: *test-base
+    command: ["python", "Tests/unit/run_unit_tests.py"]
+    
+  # Running only integration tests
+  tests-integration:
+    <<: *test-base
+    command: ["python", "-m", "unittest", "discover", "-s", "Tests/integration"]
 
 volumes:
   uploads:
+    external: true
     name: cloudcode_uploads
-    driver: local
