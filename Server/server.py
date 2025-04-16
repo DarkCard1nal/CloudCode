@@ -39,6 +39,10 @@ class CodeExecutionServer:
 				status_code = result.get("status")
 				if status_code in Config.ERRORS:
 					self.metrics.failure_count.labels(endpoint=str(status_code)).inc()
+				
+				if status_code == 206:
+					self.metrics.success_count.labels(endpoint="/execute").inc()
+
 				return jsonify(result), status_code
 			else:
 				self.metrics.success_count.labels(endpoint="/execute").inc()
@@ -60,4 +64,5 @@ class CodeExecutionServer:
 
 	def run(self):
 		"""Launches the server in multi-threaded mode."""
-		self.app.run(debug=Config.DEBUG, port=Config.PORT, threaded=True)
+		self.app.run(host="0.0.0.0", port=Config.PORT, threaded=True)
+

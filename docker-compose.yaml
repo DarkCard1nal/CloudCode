@@ -1,0 +1,98 @@
+version: '3.9'
+
+services:
+  server:
+    # Production (release) mode: minimum set of mounts,
+    # all data (e.g. uploads) is stored in volume.
+    image: thisisvynokurov/cloud_code_server:latest
+    ports:
+      - "5000:5000"
+    volumes:
+      - uploads:/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./Tasks:/app/Tasks
+    environment:
+      - DEBUG_MODE=false
+      - WATCH_MODE=false
+
+  develop:
+    # Development mode: debugging is enabled, source files are mounted,
+    # so that changes are immediately reflected without rebuilding the container.
+    image: thisisvynokurov/cloud_code_server:latest
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - uploads:/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./Tasks:/app/Tasks
+    environment:
+      - DEBUG_MODE=true
+      - WATCH_MODE=true
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    profiles:
+      - develop
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    environment:
+      - PROMETHEUS_CONFIG_PATH=/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+     - '3000:3000'
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      
+  # Basic configuration for all test services
+  test-base: &test-base
+    image: thisisvynokurov/cloud_code_server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - uploads:/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - APP_DEBUG=true
+      - PYTHONPATH=/app
+      - DEBUG_MODE=true
+    depends_on:
+      - server
+    profiles:
+      - testing
+      
+  # Running all tests
+  tests:
+    <<: *test-base
+    command: ["/bin/bash", "-c", "echo 'Running all tests...' && echo 'Running behave tests...' && behave Tests/features && echo 'Running unit tests...' && python Tests/unit/run_unit_tests.py && echo 'Running integration tests...' && python -m unittest discover -s Tests/integration"]
+
+  # Running only behave tests
+  tests-behave:
+    <<: *test-base
+    command: ["behave", "Tests/features"]
+    
+  # Running only unit tests
+  tests-unit:
+    <<: *test-base
+    command: ["python", "Tests/unit/run_unit_tests.py"]
+    
+  # Running only integration tests
+  tests-integration:
+    <<: *test-base
+    command: ["python", "-m", "unittest", "discover", "-s", "Tests/integration"]
+
+volumes:
+  uploads:
+    external: true
+    name: cloudcode_uploads
+  grafana-storage: {}
