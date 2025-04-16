@@ -134,7 +134,7 @@ python run_client.py
 
 3. Enter "admin" in the login and password fields, then change the password.
 
-4. Go to connections, then to Data sources and choose "Prometheus" as the data source. After that enter `http://prometheus:9090` in Connection field and press "Save & test"
+4. Go to connections, then to Data sources and choose "Prometheus" as the data source. After that enter `http://prometheus:9090` in Connection field and press "Save & test".
 
 5. In the "Queries" field, enter the necessary PromQL queries.
 
