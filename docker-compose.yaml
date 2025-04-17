@@ -74,4 +74,5 @@ services:
 
 volumes:
   uploads:
+    external: true
     name: cloudcode_uploads
