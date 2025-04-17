@@ -1,0 +1,45 @@
+version: 2.1
+
+jobs:
+    lint:
+        docker:
+            - image: python:3.10.6-slim
+        working_directory: ~/repo
+        steps:
+            - checkout
+            - run:
+                  name: Install flake8
+                  command: |
+                      pip install --no-cache-dir flake8
+            - run:
+                  name: Run flake8
+                  command: flake8 Server/ run_server.py
+
+    test:
+        docker:
+            - image: docker:20.10.24-dind
+        working_directory: ~/repo
+        steps:
+            - checkout
+            - setup_remote_docker:
+                  docker_layer_caching: true
+            - run:
+                  name: Install Docker Compose
+                  command: |
+                      apt-get update && apt-get install -y docker-compose
+            - run:
+                  name: Run tests using docker-compose
+                  command: |
+                      docker-compose --profile testing up --build --abort-on-container-exit tests
+            - run:
+                  name: Cleanup
+                  command: docker-compose down --volumes --remove-orphans
+
+workflows:
+    version: 2
+    ci_pipeline:
+        jobs:
+            - lint
+            - test:
+                  requires:
+                      - lint
