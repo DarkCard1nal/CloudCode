@@ -55,12 +55,12 @@ services:
   # Running all tests
   tests:
     <<: *test-base
-    command: ["/bin/bash", "-c", "echo 'Running all tests...' && echo 'Running behave tests...' && behave Tests/features && echo 'Running unit tests...' && python Tests/unit/run_unit_tests.py && echo 'Running integration tests...' && python -m unittest discover -s Tests/integration"]
+    command: ["/bin/bash", "-c", "echo 'Running all tests...' && echo 'Running unit tests...' && python Tests/unit/run_unit_tests.py && echo 'Running integration tests...' && python -m unittest discover -s Tests/integration && echo 'Running behave tests...' && behave Tests/features"]
 
   # Running only behave tests
   tests-behave:
     <<: *test-base
-    command: ["behave", "Tests/features"]
+    command: ["behave", "/app/Tests/features"]
     
   # Running only unit tests
   tests-unit:
