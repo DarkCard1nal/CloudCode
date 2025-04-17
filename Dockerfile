@@ -12,6 +12,7 @@ COPY run_server.py ./
 COPY Server ./Server/
 COPY Client ./Client/
 COPY Tests ./Tests/
+COPY behave.ini ./
 
 # Copy requirements.txt into the container
 COPY requirements.txt .
