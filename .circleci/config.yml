@@ -32,7 +32,7 @@ jobs:
                   command: docker pull card1nal/cloud_code_server:latest
             - run:
                   name: List files
-                  command: tree -f
+                  command: sudo tree -f && ls
             - run:
                   name: List files in steps directory
                   command: ls -la /app/Tests/features/steps
