@@ -43,6 +43,7 @@ services:
     volumes:
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./Tasks:/app/Tasks
     environment:
       - APP_DEBUG=true
       - PYTHONPATH=/app
@@ -61,38 +62,27 @@ services:
           - pipefail
           - -c
           - |
-            echo "--- ls -R ---"
-            ls -R
-            echo "--- ls /app/Tests/unit ---"
-            ls -la Tests/unit
-            ls -la /app/Tests/unit
             echo "--- running unit tests ---"
             python Tests/unit/run_unit_tests.py
-
-            echo "--- ls /app/Tests/integration ---"
-            ls -la Tests/integration
             echo "--- running integration tests ---"
             python -m unittest discover -s Tests/integration
-
-            echo "--- ls /app/Tests/features ---"
-            ls -la Tests/features
             echo "--- running behave tests ---"
             behave Tests/features
 
   # Running only behave tests
   tests-behave:
     <<: *test-base
-    command: ["behave", "/app/Tests/features"]
+    command: ["behave", "/Tests/features"]
     
   # Running only unit tests
   tests-unit:
     <<: *test-base
-    command: ["python", "/app/Tests/unit/run_unit_tests.py"]
+    command: ["python", "/Tests/unit/run_unit_tests.py"]
     
   # Running only integration tests
   tests-integration:
     <<: *test-base
-    command: ["python", "-m", "unittest", "discover", "-s", "/app/Tests/integration"]
+    command: ["python", "-m", "unittest", "discover", "-s", "/Tests/integration"]
 
 volumes:
   uploads:
