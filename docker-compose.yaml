@@ -57,10 +57,6 @@ services:
   tests:
     <<: *test-base
     command:
-          - /bin/bash
-          - -eo
-          - pipefail
-          - -c
           - |
             echo "--- ls -R ---"
             ls -R
