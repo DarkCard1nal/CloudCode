@@ -9,6 +9,7 @@ WORKDIR /app
 # Copy necessary files
 COPY requirements.txt ./
 COPY run_server.py ./
+COPY run_client.py ./
 COPY Server ./Server/
 COPY Client ./Client/
 COPY Tests ./Tests/
