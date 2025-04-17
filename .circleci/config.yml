@@ -24,16 +24,17 @@ jobs:
             - setup_remote_docker:
                   docker_layer_caching: true
             - run:
-                  name: Install Docker Compose
+                  name: Install Docker Compose plugin
                   command: |
-                      apt-get update && apt-get install -y docker-compose
+                      apk update && apk add docker-cli-compose
             - run:
-                  name: Run tests using docker-compose
+                  name: Run tests using docker compose
                   command: |
-                      docker-compose --profile testing up --build --abort-on-container-exit tests
+                      docker compose --profile testing up --build --abort-on-container-exit tests
             - run:
                   name: Cleanup
-                  command: docker-compose down --volumes --remove-orphans
+                  command: |
+                      docker compose down --volumes --remove-orphans
 
 workflows:
     version: 2
