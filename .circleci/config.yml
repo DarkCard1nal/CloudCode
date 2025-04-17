@@ -28,9 +28,16 @@ jobs:
                   command: |
                       apk update && apk add docker-cli-compose
             - run:
+                  name: Pull prebuilt server image
+                  command: docker pull card1nal/cloud_code_server:latest
+            - run:
                   name: Run tests using docker compose
                   command: |
-                      docker compose --profile testing up --build --abort-on-container-exit tests
+                      docker compose --profile testing up --abort-on-container-exit tests
+            - run:
+                  name: Debug list steps directory inside tests container
+                  command: |
+                      docker compose exec tests ls -la /app/Tests/features/steps
             - run:
                   name: Cleanup
                   command: |
