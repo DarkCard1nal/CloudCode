@@ -62,7 +62,8 @@ services:
           - pipefail
           - -c
           - |
-            ls
+            echo "--- tree -f . && ls ---"
+            tree -f . && ls
             echo "--- ls /app/Tests/unit ---"
             ls -la Tests/unit
             ls -la /app/Tests/unit
