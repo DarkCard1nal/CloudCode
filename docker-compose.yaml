@@ -62,8 +62,10 @@ services:
           - pipefail
           - -c
           - |
+            ls
             echo "--- ls /app/Tests/unit ---"
             ls -la Tests/unit
+            ls -la /app/Tests/unit
             echo "--- running unit tests ---"
             python Tests/unit/run_unit_tests.py
 
