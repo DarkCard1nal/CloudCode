@@ -18,7 +18,7 @@ jobs:
     test:
         docker:
             - image: docker:20.10.24-dind
-        working_directory: ./
+        working_directory: /app
         steps:
             - checkout
             - setup_remote_docker:

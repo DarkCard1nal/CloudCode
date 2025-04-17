@@ -56,7 +56,7 @@ services:
   # Running all tests
   tests:
     <<: *test-base
-    command: ["/bin/bash", "-c", "echo 'Running all tests...' && echo 'Running unit tests...' && python Tests/unit/run_unit_tests.py && echo 'Running integration tests...' && python -m unittest discover -s Tests/integration && echo 'Running behave tests...' && behave Tests/features"]
+    command: ["/bin/bash", "-c", "echo 'Running all tests...' && echo 'Running unit tests...' && python /app/Tests/unit/run_unit_tests.py && echo 'Running integration tests...' && python -m unittest discover -s /app/Tests/integration && echo 'Running behave tests...' && behave /app/Tests/features"]
 
   # Running only behave tests
   tests-behave:
@@ -66,12 +66,12 @@ services:
   # Running only unit tests
   tests-unit:
     <<: *test-base
-    command: ["python", "Tests/unit/run_unit_tests.py"]
+    command: ["python", "/app/Tests/unit/run_unit_tests.py"]
     
   # Running only integration tests
   tests-integration:
     <<: *test-base
-    command: ["python", "-m", "unittest", "discover", "-s", "Tests/integration"]
+    command: ["python", "-m", "unittest", "discover", "-s", "/app/Tests/integration"]
 
 volumes:
   uploads:
