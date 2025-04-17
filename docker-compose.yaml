@@ -41,7 +41,6 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - .:/app
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -57,6 +56,10 @@ services:
   tests:
     <<: *test-base
     command:
+          - /bin/bash
+          - -eo
+          - pipefail
+          - -c
           - |
             echo "--- ls -R ---"
             ls -R
