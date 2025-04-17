@@ -4,7 +4,7 @@ jobs:
     lint:
         docker:
             - image: python:3.10.6-slim
-        working_directory: ~/repo
+        working_directory: /app
         steps:
             - checkout
             - run:
@@ -18,7 +18,7 @@ jobs:
     test:
         docker:
             - image: docker:20.10.24-dind
-        working_directory: ~/repo
+        working_directory: /app
         steps:
             - checkout
             - setup_remote_docker:
@@ -30,10 +30,6 @@ jobs:
             - run:
                   name: Pull prebuilt server image
                   command: docker pull card1nal/cloud_code_server:latest
-            - run:
-                  name: Debug list steps directory inside tests container
-                  command: |
-                      docker compose exec tests ls -la /app/Tests/features/steps
             - run:
                   name: Run tests using docker compose
                   command: |
