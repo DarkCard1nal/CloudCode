@@ -65,7 +65,7 @@ class CodeExecutor:
 			try:
 				container.wait(timeout=Config.EXECUTION_TIMEOUT)
 			except (ReadTimeoutError, ConnectionError,
-			        docker.errors.DockerException) as e:
+			        docker.errors.DockerException):
 				# If the container did not complete on time, throw an exception
 				# error += f"ReadTimeoutError (ConnectionError) or Docker errors: {str(e)}\n"
 				container.kill()
