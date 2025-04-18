@@ -1,9 +1,10 @@
 import os
 import re
 from typing import List, Set, Tuple, Dict, Any
+from abc import ABC, abstractmethod
 
 
-class PythonSecurityChecker:
+class PythonSecurityChecker(ABC):
 	# Dangerous modules to be removed
 	DANGEROUS_MODULES: Set[str] = {
 	    'eval', 'exec', '__import__', 'importlib', 'imp', 'marshal', 'pickle',
@@ -250,29 +251,39 @@ class PythonSecurityChecker:
 	    (r'[\'"]\s*[0-9a-zA-Z]{20,}\s*[\'"]', 'Generic long credential'),
 	]
 
-	def __init__(self,
-	             max_file_size: int = 1024 * 1024,
-	             is_docker_environment: bool = False):
+	def __init__(self, *args, **kwargs):
 		"""
-		Initialize the checker with the specified maximum file size and Docker environment flag.
-		Args: max_file_size (int): Maximum file size in bytes
-		      is_docker_environment (bool): Flag indicating whether the checker is running in a Docker environment
+		Prevents instantiation of this abstract class.
 		"""
-		self.max_file_size = max_file_size
-		self.is_docker_environment = is_docker_environment
-		self.last_unsafe_operations = []
+		raise TypeError("PythonSecurityChecker is an abstract module and cannot be instantiated")
 
-		self._compiled_regex_patterns = [
+	@classmethod
+	def setup(cls, max_file_size: int = 1024 * 1024, is_docker_environment: bool = False):
+		"""
+		Configure the security checker parameters.
+		
+		Args:
+			max_file_size (int): Maximum file size in bytes
+			is_docker_environment (bool): Flag indicating whether the checker is running in a Docker environment
+		
+		Returns:
+			dict: Configuration details
+		"""
+		cls.max_file_size = max_file_size
+		cls.is_docker_environment = is_docker_environment
+		cls.last_unsafe_operations = []
+
+		cls._compiled_regex_patterns = [
 		    (re.compile(pattern), description, category)
-		    for pattern, description, category in self.REGEX_PATTERNS
+		    for pattern, description, category in cls.REGEX_PATTERNS
 		]
-		self._compiled_sensitive_patterns = [
+		cls._compiled_sensitive_patterns = [
 		    (re.compile(pattern), description)
-		    for pattern, description in self.SENSITIVE_DATA_PATTERNS
+		    for pattern, description in cls.SENSITIVE_DATA_PATTERNS
 		]
 
 		# Dangerous os module functions
-		self.dangerous_os_funcs = set([
+		cls.dangerous_os_funcs = set([
 		    'system', 'popen', 'execl', 'execle', 'execlp', 'execlpe', 'execv',
 		    'execve', 'execvp', 'execvpe', 'spawn', 'spawnl', 'spawnle',
 		    'spawnlp', 'spawnlpe', 'spawnv', 'spawnve', 'spawnvp', 'spawnvpe',
@@ -280,22 +291,22 @@ class PythonSecurityChecker:
 		])
 
 		# Safe os.path functions
-		self.safe_os_path_funcs = set([
+		cls.safe_os_path_funcs = set([
 		    'exists', 'isfile', 'isdir', 'islink', 'join', 'abspath', 'dirname',
 		    'basename', 'splitext', 'normpath', 'realpath'
 		])
 
 		# Dangerous sys module functions
-		self.dangerous_sys_funcs = set([
+		cls.dangerous_sys_funcs = set([
 		    '_getframe', 'setprofile', 'settrace', 'setrecursionlimit', 'exit'
 		])
 
 		# Safe sys module functions
-		self.safe_sys_funcs = set(
+		cls.safe_sys_funcs = set(
 		    ['argv', 'path', 'platform', 'version', 'version_info', 'modules'])
 
 		# Compile safe subprocess patterns
-		self.safe_subprocess_patterns = [
+		cls.safe_subprocess_patterns = [
 		    re.compile(r'subprocess\.run\([^)]*shell\s*=\s*False'),
 		    re.compile(
 		        r'subprocess\.run\([^)]*check\s*=\s*True[^)]*shell\s*=\s*False'
@@ -309,41 +320,65 @@ class PythonSecurityChecker:
 		]
 
 		# API token prefixes
-		self.api_tokens = {
+		cls.api_tokens = {
 		    'Slack API': ['xoxb-', 'xoxa-', 'xoxp-', 'xoxs-'],
 		    'GitHub API': ['ghp_', 'gho_', 'ghu_', 'github_pat_'],
 		    'Stripe API': ['pk_test_', 'sk_test_', 'pk_live_', 'sk_live_']
 		}
+		
+		return {
+			"max_file_size": cls.max_file_size,
+			"is_docker_environment": cls.is_docker_environment
+		}
 
-	def check_file(self, file_path: str) -> str:
+	@classmethod
+	def check_file(cls, file_path: str) -> str:
 		"""
 		Check a Python file for dangerous code and create a safe version.
-		Args: file_path (str): Path to the Python file to check
-		Returns: str: Path to the safe version of the file
+		
+		Args: 
+			file_path (str): Path to the Python file to check
+		
+		Returns: 
+			str: Path to the safe version of the file
 		"""
 		try:
-			self._validate_file(file_path)
+			cls._validate_file(file_path)
 
 			with open(file_path, 'r', encoding='utf-8') as file:
 				content = file.read()
 
-			unsafe_operations, unsafe_lines = self._detect_unsafe_code(content)
-			self.last_unsafe_operations = unsafe_operations
+			unsafe_operations, unsafe_lines = cls._detect_unsafe_code(content)
+			cls.last_unsafe_operations = unsafe_operations
 
-			safe_content = self._create_safe_content(content, unsafe_lines)
-			safe_file_path = self._create_safe_file(file_path, safe_content)
+			safe_content = cls._create_safe_content(content, unsafe_lines)
+			safe_file_path = cls._create_safe_file(file_path, safe_content)
 
 			return safe_file_path
 		except Exception as e:
 			raise ValueError(f"Error checking file: {str(e)}")
 
-	def get_unsafe_operations(self) -> List[Dict[str, Any]]:
-		""" Returns information about unsafe operations found in the last checked file.
-		Returns: List[Dict[str, Any]]: List of dictionaries containing information about unsafe operations """
-		return self.last_unsafe_operations
+	@classmethod
+	def get_unsafe_operations(cls) -> List[Dict[str, Any]]:
+		""" 
+		Returns information about unsafe operations found in the last checked file.
+		
+		Returns: 
+			List[Dict[str, Any]]: List of dictionaries containing information about unsafe operations 
+		"""
+		return cls.last_unsafe_operations
 
-	def _validate_file(self, file_path: str) -> None:
-		"""Validates the file path and format."""
+	@classmethod
+	def _validate_file(cls, file_path: str) -> None:
+		"""
+		Validates the file path and format.
+		
+		Args:
+			file_path (str): Path to the file to check
+			
+		Raises:
+			ValueError: If the file is invalid
+		"""
 		if not os.path.exists(file_path):
 			raise ValueError(f"File not found: {file_path}")
 
@@ -354,18 +389,29 @@ class PythonSecurityChecker:
 			raise ValueError(f"Not a Python file: {file_path}")
 
 		file_size = os.path.getsize(file_path)
-		if file_size > self.max_file_size:
+		if not hasattr(cls, 'max_file_size'):
+			cls.setup()
+			
+		if file_size > cls.max_file_size:
 			raise ValueError(
-			    f"File exceeds maximum allowed size ({self.max_file_size} bytes): {file_size} bytes"
+			    f"File exceeds maximum allowed size ({cls.max_file_size} bytes): {file_size} bytes"
 			)
 
+	@classmethod
 	def _detect_unsafe_code(
-	        self, content: str) -> Tuple[List[Dict[str, Any]], List[int]]:
+	        cls, content: str) -> Tuple[List[Dict[str, Any]], List[int]]:
 		"""
 		Optimized method for detecting all types of unsafe code in a single pass.
-		Args: content (str): File content for analysis
-		Returns: Tuple[List[Dict[str, Any]], List[int]]: Tuple with a list of unsafe operations and lines
+		
+		Args: 
+			content (str): File content for analysis
+			
+		Returns: 
+			Tuple[List[Dict[str, Any]], List[int]]: Tuple with a list of unsafe operations and lines
 		"""
+		if not hasattr(cls, '_compiled_regex_patterns'):
+			cls.setup()
+			
 		lines = content.split('\n')
 		unsafe_operations = []
 		unsafe_lines = set()
@@ -380,7 +426,7 @@ class PythonSecurityChecker:
 				continue
 
 			if 'os.' in line:
-				for func in self.dangerous_os_funcs:
+				for func in cls.dangerous_os_funcs:
 					if f'os.{func}' in line:
 						unsafe_lines.add(i)
 						unsafe_operations.append({
@@ -400,7 +446,7 @@ class PythonSecurityChecker:
 
 			if 'subprocess.' in line and not any(
 			    pattern.search(line)
-			    for pattern in self.safe_subprocess_patterns):
+			    for pattern in cls.safe_subprocess_patterns):
 				unsafe_lines.add(i)
 				unsafe_operations.append({
 				    'line': i,
@@ -410,8 +456,8 @@ class PythonSecurityChecker:
 				})
 				continue
 
-			if any(keyword in line for keyword in self.SSRF_KEYWORDS):
-				keyword = next(k for k in self.SSRF_KEYWORDS if k in line)
+			if any(keyword in line for keyword in cls.SSRF_KEYWORDS):
+				keyword = next(k for k in cls.SSRF_KEYWORDS if k in line)
 				unsafe_lines.add(i)
 				unsafe_operations.append({
 				    'line':
@@ -426,7 +472,7 @@ class PythonSecurityChecker:
 				continue
 
 			if 'import ' in line_lower or 'from ' in line_lower:
-				for module in self.DANGEROUS_MODULES:
+				for module in cls.DANGEROUS_MODULES:
 					if (f'import {module}' in line_lower or
 					    f'from {module}' in line_lower or
 					    f', {module}' in line_lower or
@@ -459,7 +505,7 @@ class PythonSecurityChecker:
 				continue
 
 			if 'sys.' in line:
-				for func in self.dangerous_sys_funcs:
+				for func in cls.dangerous_sys_funcs:
 					if f'sys.{func}' in line:
 						unsafe_lines.add(i)
 						unsafe_operations.append({
@@ -477,7 +523,7 @@ class PythonSecurityChecker:
 				if i in unsafe_lines:
 					continue
 
-			for token_type, prefixes in self.api_tokens.items():
+			for token_type, prefixes in cls.api_tokens.items():
 				if any(token in line for token in prefixes):
 					unsafe_lines.add(i)
 					unsafe_operations.append({
@@ -491,7 +537,7 @@ class PythonSecurityChecker:
 			if i in unsafe_lines:
 				continue
 
-			for pattern, description, category in self._compiled_regex_patterns:
+			for pattern, description, category in cls._compiled_regex_patterns:
 				if pattern.search(line):
 					unsafe_lines.add(i)
 					unsafe_operations.append({
@@ -505,7 +551,7 @@ class PythonSecurityChecker:
 			if i in unsafe_lines:
 				continue
 
-			for pattern, description in self._compiled_sensitive_patterns:
+			for pattern, description in cls._compiled_sensitive_patterns:
 				if pattern.search(line):
 					unsafe_lines.add(i)
 					unsafe_operations.append({
@@ -527,20 +573,25 @@ class PythonSecurityChecker:
 
 		return unsafe_operations, list(unsafe_lines)
 
-	def _create_safe_content(self, content: str,
+	@classmethod
+	def _create_safe_content(cls, content: str,
 	                         unsafe_lines: List[int]) -> str:
 		"""
 		Creates a safe version of the content by filtering out unsafe lines.
-		Args: content (str): Original content
-			  unsafe_lines (List[int]): List of line numbers to remove
-		Returns: str: Safe content
+		
+		Args: 
+			content (str): Original content
+			unsafe_lines (List[int]): List of line numbers to remove
+			
+		Returns: 
+			str: Safe content
 		"""
 		lines = content.split('\n')
 		safe_lines = []
 		unsafe_set = set(unsafe_lines)
 
 		operation_types = {}
-		for op in self.last_unsafe_operations:
+		for op in cls.last_unsafe_operations:
 			operation_types[op['line']] = op['type']
 
 		for i, line in enumerate(lines, 1):
@@ -555,11 +606,16 @@ class PythonSecurityChecker:
 
 		return '\n'.join(safe_lines)
 
-	def _is_safe_import(self, line: str) -> bool:
+	@classmethod
+	def _is_safe_import(cls, line: str) -> bool:
 		"""
 		Determines if an import statement is safe.
-		Args: line (str): Line to check
-		Returns: bool: True if the import is safe, False otherwise
+		
+		Args: 
+			line (str): Line to check
+			
+		Returns: 
+			bool: True if the import is safe, False otherwise
 		"""
 		line_lower = line.lower()
 
@@ -571,26 +627,31 @@ class PythonSecurityChecker:
 		    'from subprocess' in line_lower):
 			return True
 
-		for module in self.SAFE_MODULES:
+		for module in cls.SAFE_MODULES:
 			if (f'import {module}' in line_lower or
 			    f'from {module}' in line_lower or f', {module}' in line_lower or
 			    f'{module},' in line_lower):
 				return True
 
-		for module in self.DANGEROUS_MODULES:
+		for module in cls.DANGEROUS_MODULES:
 			if (f'import {module}' in line_lower or
 			    f'from {module}' in line_lower or f', {module}' in line_lower or
 			    f'{module},' in line_lower):
 				return False
 
-		return self.is_docker_environment
+		return cls.is_docker_environment
 
-	def _create_safe_file(self, original_path: str, safe_content: str) -> str:
+	@classmethod
+	def _create_safe_file(cls, original_path: str, safe_content: str) -> str:
 		"""
 		Creates a new file with safe content.
-		Args: original_path (str): Path to the original file
-			  safe_content (str): Safe content
-		Returns: str: Path to the new safe file
+		
+		Args: 
+			original_path (str): Path to the original file
+			safe_content (str): Safe content
+			
+		Returns: 
+			str: Path to the new safe file
 		"""
 		dir_name = os.path.dirname(original_path)
 		base_name = os.path.basename(original_path)
