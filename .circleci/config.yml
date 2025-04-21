@@ -31,13 +31,26 @@ jobs:
                   name: Pull prebuilt server image
                   command: docker pull card1nal/cloud_code_server:latest
             - run:
+                  name: Create external volume for tests
+                  command: docker volume create cloudcode_uploads
+            - run:
                   name: Run tests using docker compose
                   command: |
                       docker compose --profile testing up --abort-on-container-exit
+                      EXIT_CODE=$?
+                      mkdir -p test-results
+                      docker cp $(docker ps -aqf name=tests-server):/app/test-results ./test-results || true
+                      if [ $EXIT_CODE -ne 0 ]; then exit $EXIT_CODE; fi
+            - store_test_results:
+                  path: test-results
+            - store_artifacts:
+                  path: test-results
+                  destination: test-results
             - run:
                   name: Cleanup
                   command: |
                       docker compose down --volumes --remove-orphans
+                      docker volume rm cloudcode_uploads || true
 
 workflows:
     ci_pipeline:
