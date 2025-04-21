@@ -33,7 +33,7 @@ jobs:
             - run:
                   name: Run tests using docker compose
                   command: |
-                      docker compose --profile testing up --abort-on-container-exit tests
+                      docker compose --profile testing up --abort-on-container-exit
             - run:
                   name: Cleanup
                   command: |
