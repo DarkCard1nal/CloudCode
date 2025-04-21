@@ -5,19 +5,19 @@ from Server.executor import CodeExecutor
 
 class CodeExecutionServer:
 
-	def __init__(self):
-		self.app = Flask(__name__)
-		self.setup_routes()
+    def __init__(self):
+        self.app = Flask(__name__)
+        self.setup_routes()
 
-	def setup_routes(self):
-		"""Set up API routes."""
+    def setup_routes(self):
+        """Set up API routes."""
 
-		@self.app.route("/execute", methods=["POST"])
-		def execute():
-			"""Processes requests for code execution."""
-			result = CodeExecutor.execute_code(request.files.get("file"))
-			return jsonify(result)
+        @self.app.route("/execute", methods=["POST"])
+        def execute():
+            """Processes requests for code execution."""
+            result = CodeExecutor.execute_code(request.files.get("file"))
+            return jsonify(result)
 
-	def run(self):
-		"""Launches the server in multi-threaded mode."""
-		self.app.run(host="0.0.0.0", port=Config.PORT, threaded=True)
+    def run(self):
+        """Launches the server in multi-threaded mode."""
+        self.app.run(host="0.0.0.0", port=Config.PORT, threaded=True)
