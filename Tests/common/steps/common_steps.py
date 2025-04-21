@@ -15,26 +15,25 @@ def step_server_running(context):
 			stdout=subprocess.PIPE, 
 			stderr=subprocess.PIPE
 		)
-		time.sleep(5)
+		time.sleep(0.3)
 	
 	max_retries = 3
 	last_exception = None
 	
 	for attempt in range(max_retries):
 		try:
-			response = requests.get("http://localhost:5000/health", timeout=5)
+			response = requests.get("http://localhost:5000/health", timeout=0.5)
 			if response.status_code == 200:
 				return
 		except (requests.RequestException, ConnectionError) as e:
 			last_exception = e
 			if attempt < max_retries - 1:
-				time.sleep(2)
+				time.sleep(0.2)
 	
 	if last_exception:
 		raise AssertionError(f"Failed to connect to the server: {last_exception}")
 	else:
 		raise AssertionError(f"Server returned code {response.status_code}")
-
 
 @given("the server is running with {feature} enabled")
 def step_server_running_with_feature(context, feature):
@@ -47,7 +46,7 @@ def step_server_running_with_feature(context, feature):
 			stdout=subprocess.PIPE, 
 			stderr=subprocess.PIPE
 		)
-		time.sleep(5)
+		time.sleep(0.3)
 	
 	max_retries = 3
 	last_exception = None
@@ -71,7 +70,7 @@ def step_server_running_with_feature(context, feature):
 		except (requests.RequestException, ConnectionError, KeyError, AssertionError) as e:
 			last_exception = e
 			if attempt < max_retries - 1:
-				time.sleep(2)
+				time.sleep(0.2)
 	
 	if last_exception:
 		raise AssertionError(f"Failed to connect to the server: {last_exception}")
@@ -97,12 +96,20 @@ def step_client_connected(context):
 
 def create_python_file(content, delete=False):
 	"""Creating a temporary Python file with the specified content"""
-	with tempfile.NamedTemporaryFile(suffix=".py", delete=delete) as temp_file:
+	uploads_dir = '/uploads'
+	
+	task_id = str(int(time.time() * 1000))
+	task_dir = os.path.join(uploads_dir, task_id)
+	os.makedirs(task_dir, exist_ok=True)
+	
+	file_path = os.path.join(task_dir, "test_script.py")
+	with open(file_path, 'w', encoding='utf-8') as f:
 		if isinstance(content, str):
-			content = content.encode()
-		temp_file.write(content)
-		temp_file.flush()
-		return temp_file.name
+			f.write(content)
+		else:
+			f.write(content.decode())
+	
+	return file_path
 
 @when("I send a file with content to the server:")
 def step_send_file_with_content(context):
@@ -143,7 +150,6 @@ dangerous_operation()
 	context.result = context.client.send_code(file_path)
 
 
-
 @then("the task should complete successfully")
 def step_task_completes_successfully(context):
 	"""Checking successful task completion"""
@@ -167,12 +173,29 @@ def step_client_receives_results(context):
 
 def cleanup_resources(context):
 	"""Cleaning up resources after test completion"""
+	uploads_dir = os.path.join(os.getcwd(), 'uploads')
+	if os.path.exists(uploads_dir):
+		for item in os.listdir(uploads_dir):
+			item_path = os.path.join(uploads_dir, item)
+			if item in ['server_test', 'client_test', 'integration_test']:
+				continue
+			try:
+				if os.path.isfile(item_path):
+					os.unlink(item_path)
+				elif os.path.isdir(item_path):
+					shutil.rmtree(item_path)
+			except Exception as e:
+				print(f"Error removing {item_path}: {e}")
+	
 	for attr in ['temp_file_path', 'valid_task', 'invalid_task', 'corrupted_file']:
 		if hasattr(context, attr):
 			file_path = getattr(context, attr)
 			if file_path and os.path.exists(file_path):
 				try:
-					os.unlink(file_path)
+					if os.path.isfile(file_path):
+						os.unlink(file_path)
+					elif os.path.isdir(os.path.dirname(file_path)):
+						shutil.rmtree(os.path.dirname(file_path))
 				except Exception as e:
 					print(f"Error removing {attr}: {e}")
 	
@@ -181,4 +204,4 @@ def cleanup_resources(context):
 			context.server_process.terminate()
 			context.server_process.wait(timeout=5)
 		except Exception as e:
-			print(f"Error terminating the server: {e}") 
+			print(f"Error terminating the server: {e}")

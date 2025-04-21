@@ -9,10 +9,12 @@ WORKDIR /app
 # Copy necessary files
 COPY requirements.txt ./
 COPY run_server.py ./
-COPY run_client.py ./
 COPY Server ./Server/
-COPY Client ./Client/
-COPY Tests ./Tests/
+COPY Tests/server ./Tests/server/
+COPY Tests/run_server_tests.py ./Tests/
+COPY Tests/environment.py ./Tests/
+COPY Tests/utils ./Tests/utils/
+COPY Tests/common/utils ./Tests/common/utils/
 COPY behave.ini ./
 
 # Copy requirements.txt into the container

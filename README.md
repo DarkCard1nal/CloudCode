@@ -120,79 +120,84 @@ The project includes three types of tests to ensure quality and functionality:
 
 ### Test Structure
 
-- **Unit Tests** (`Tests/unit/`) - Tests for individual components in isolation
-- **Integration Tests** (`Tests/integration/`) - Tests for component interactions
-- **Functional Tests** (`Tests/features/`) - BDD-style tests using Behave
+- **Server Tests** (`Tests/server/`)
+  - Unit Tests - Tests for individual server components
+  - Integration Tests - Tests for server component interactions
+  - Functional Tests (Behave) - BDD-style tests for server functionality
+
+- **Client Tests** (`Tests/client/`)
+  - Unit Tests - Tests for individual client components
+  - Integration Tests - Tests for client component interactions
+  - Functional Tests (Behave) - BDD-style tests for client functionality
+
+- **Common Tests** (`Tests/common/`)
+  - Integration Tests - Tests for client-server interactions
+  - Functional Tests (Behave) - BDD-style tests for end-to-end functionality
 
 ### Prerequisites
 
-- Docker must be installed and running
-- Docker Compose must be installed
+- Docker must be installed and running (for server tests)
+- Docker Compose must be installed (for server tests)
+- Python 3.6+ (for client and common tests)
+- Behave package installed (for BDD tests): `pip install behave`
 
-### Running Tests with Docker Compose
+### Running Server Tests with Docker Compose
 
-We use Docker Compose profiles to run tests. All test commands are configured directly in the `docker-compose.yml` file, eliminating the need for additional scripts.
-
-#### First-time Setup
-
-Before running tests for the first time, it's recommended to create the necessary Docker volume:
+Server tests are configured to run in Docker containers:
 
 ```sh
-docker volume create cloudcode_uploads
+# Run all server tests
+docker compose run --rm tests-server
+
+# Run only server unit tests
+docker compose run --rm tests-server-unit
+
+# Run only server integration tests
+docker compose run --rm tests-server-integration
+
+# Run only server behavior tests
+docker compose run --rm tests-server-behave
 ```
 
-#### Running All Tests
+### Running Client Tests
 
-To run all tests (unit, integration, and functional):
+To run client tests locally:
 
 ```sh
-docker-compose --profile testing up tests
+# Run all client tests
+python Tests/run_client_tests.py
+
+# Run specific client tests
+python -m unittest discover -s Tests/client/unit
+python -m unittest discover -s Tests/client/integration
+python -m behave Tests/client/features
 ```
 
-#### Running Specific Test Types
+### Running Common Tests
 
-For running only Behave functional tests:
-```sh
-docker-compose --profile testing up tests-behave
-```
-
-For running only unit tests:
-```sh
-docker-compose --profile testing up tests-unit
-```
-
-For running only integration tests:
-```sh
-docker-compose --profile testing up tests-integration
-```
-
-#### Running Individual Test Files
-
-For running specific test files or feature files:
+To run common tests (requires server to be running):
 
 ```sh
-# Run a specific feature file
-docker-compose --profile testing run --rm tests-behave behave Tests/features/client.feature
+# Run all common tests
+python Tests/run_common_tests.py
 
-# Run a specific integration test
-docker-compose --profile testing run --rm tests-integration python -m unittest Tests/integration/test_integration_client.py
-
-# Run a specific unit test
-docker-compose --profile testing run --rm tests-unit python -m unittest Tests/unit/test_server.py
+# Run specific common tests
+python -m unittest Tests/common/test_integration.py
+python -m behave Tests/common/features
 ```
 
 ### Cleanup After Testing
 
-After running tests, you can clean up containers with:
+After running Docker tests, clean up containers with:
 
 ```sh
-docker-compose --profile testing down
+docker compose --profile testing down
 ```
 
-To remove orphan containers (recommended occasionally):
+To remove orphan containers:
 
 ```sh
-docker-compose --profile testing down --remove-orphans
+docker compose --profile testing down --remove-orphans
 ```
 
 ### Interpreting Test Results
@@ -203,6 +208,10 @@ docker-compose --profile testing down --remove-orphans
 
 ## Notes
 
--   Ensure `config.py` is properly set up before running the server.
--   The execution timeout is enforced to prevent infinite loops.
--   Logs and error handling are included to capture execution failures.
+- The server tests are designed to run in Docker containers for isolation
+- Client tests run locally and can be executed without Docker
+- Common tests verify the interaction between client and server
+- If behave is not installed, the test runner scripts will skip behavior tests with a warning
+- Ensure `config.py` is properly set up before running the server.
+- The execution timeout is enforced to prevent infinite loops.
+- Logs and error handling are included to capture execution failures.

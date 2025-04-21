@@ -11,7 +11,8 @@ from Server.python_security_checker import PythonSecurityChecker
 
 @given('the Python Security Checker is initialized')
 def step_impl(context):
-	context.security_checker = PythonSecurityChecker()
+	PythonSecurityChecker.setup()
+	context.security_checker_initialized = True
 
 
 @given('I have a Python file with safe code')
@@ -363,9 +364,8 @@ def step_impl(context):
 			print("DOCKER TEST WITH SAFE SUBPROCESS DETECTED!")
 			context.is_safe_subprocess_in_docker = True
 		
-		context.checker = context.security_checker
-		context.safe_file_path = context.security_checker.check_file(context.test_file_path)
-		context.unsafe_operations = context.security_checker.get_unsafe_operations()
+		context.safe_file_path = PythonSecurityChecker.check_file(context.test_file_path)
+		context.unsafe_operations = PythonSecurityChecker.get_unsafe_operations()
 		
 		if hasattr(context, 'is_safe_subprocess_in_docker'):
 			print(f"Before clearing: {len(context.unsafe_operations)} unsafe operations")
@@ -396,8 +396,8 @@ def step_impl(context):
 @when('I try to check the file for security issues')
 def step_impl(context):
 	try:
-		context.safe_file_path = context.security_checker.check_file(context.test_file_path)
-		context.unsafe_operations = context.security_checker.get_unsafe_operations()
+		context.safe_file_path = PythonSecurityChecker.check_file(context.test_file_path)
+		context.unsafe_operations = PythonSecurityChecker.get_unsafe_operations()
 		context.exception = None
 	except Exception as e:
 		context.exception = e
@@ -1161,7 +1161,8 @@ def step_impl(context):
 
 @given('the Python Security Checker is initialized in Docker mode')
 def step_impl(context):
-    context.security_checker = PythonSecurityChecker(is_docker_environment=True)
+    PythonSecurityChecker.setup(is_docker_environment=True)
+    context.security_checker_initialized = True
     context.is_docker_test = True
     print(f"Docker test mode activated: {context.is_docker_test}")
 
@@ -1202,9 +1203,8 @@ def step_impl_with_time(context):
         with open(context.test_file_path, 'r') as file:
             context.original_content = file.read()
             
-        context.checker = context.security_checker
-        context.safe_file_path = context.security_checker.check_file(context.test_file_path)
-        context.unsafe_operations = context.security_checker.get_unsafe_operations()
+        context.safe_file_path = PythonSecurityChecker.check_file(context.test_file_path)
+        context.unsafe_operations = PythonSecurityChecker.get_unsafe_operations()
         
         end_time = time.time()
         context.processing_time = end_time - start_time

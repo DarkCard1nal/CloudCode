@@ -5,41 +5,42 @@ import threading
 import tempfile
 import os
 import subprocess
+import uuid
 
 def is_server_running():
-	try:
-		response = requests.post('http://localhost:5000/execute', files={'file': ('test.py', b'print("hello")')})
-		return response.status_code == 200
-	except:
-		return False
+    try:
+        response = requests.post('http://localhost:5000/execute', files={'file': ('test.py', b'print("hello")')})
+        return response.status_code == 200
+    except:
+        return False
 
 @given('the server is running for testing')
 def step_server_running_wrapper(context):
-	if not hasattr(context, 'server_process') or context.server_process is None:
-		context.server_process = subprocess.Popen(
-			["python", "run_server.py"], 
-			stdout=subprocess.PIPE, 
-			stderr=subprocess.PIPE
-		)
-		time.sleep(5)
-	
-	max_retries = 3
-	last_exception = None
-	
-	for attempt in range(max_retries):
-		try:
-			if is_server_running():
-				return
-			time.sleep(2)
-		except Exception as e:
-			last_exception = e
-			if attempt < max_retries - 1:
-				time.sleep(2)
-	
-	if last_exception:
-		raise AssertionError(f"Failed to connect to the server: {last_exception}")
-	else:
-		raise AssertionError("Server is not responding to requests")
+    if not hasattr(context, 'server_process') or context.server_process is None:
+        context.server_process = subprocess.Popen(
+            ["python", "run_server.py"], 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE
+        )
+        time.sleep(0.3)
+    
+    max_retries = 3
+    last_exception = None
+    
+    for attempt in range(max_retries):
+        try:
+            if is_server_running():
+                return
+            time.sleep(0.2)
+        except Exception as e:
+            last_exception = e
+            if attempt < max_retries - 1:
+                time.sleep(0.2)
+    
+    if last_exception:
+        raise AssertionError(f"Failed to connect to the server: {last_exception}")
+    else:
+        raise AssertionError("Server is not responding to requests")
 
 @then('the server should be running')
 def step_server_should_be_running(context):
@@ -242,7 +243,7 @@ def step_server_under_heavy_load(context):
 		threads.append(thread)
 		thread.start()
 	
-	time.sleep(0.5)
+	time.sleep(0.1)
 
 @when('new tasks arrive')
 def step_new_tasks_arrive(context):
@@ -279,8 +280,7 @@ def step_server_executes_task(context):
 		context.error = str(e)
 	finally:
 		files['file'].close()
-	
-	time.sleep(0.5)
+	time.sleep(0.1)
 
 @then('it should terminate the task after timeout limit')
 def step_terminate_task_after_timeout(context):
@@ -295,7 +295,24 @@ def step_return_timeout_error(context):
 
 @then('free all allocated resources')
 def step_free_all_allocated_resources(context):
-	assert is_server_running(), "Server stopped responding after timeout test"
+    """Verify that all resources are properly freed after task execution"""
+    assert is_server_running(), "Server stopped responding after task execution"
+    
+    if hasattr(context, 'task_id'):
+        task_dir = os.path.join('/uploads', context.task_id)
+        assert not os.path.exists(task_dir), f"Task directory {task_dir} was not cleaned up"
+        
+    try:
+        docker_client = docker.from_env()
+        containers = docker_client.containers.list(all=True)
+        for container in containers:
+            if container.name.startswith('cloudcode_'):
+                try:
+                    container.remove(force=True)
+                except:
+                    pass
+    except:
+        pass
 
 @given('tasks are being processed')
 def step_tasks_being_processed(context):
@@ -368,6 +385,14 @@ def step_not_expose_sensitive_information(context):
 		error_text = context.response.text
 		assert "traceback" not in error_text.lower() and "exception" not in error_text.lower() and "stack" not in error_text.lower(), "Sensitive information detected in error message"
 
+@then('the server should return an error response')
+def step_server_returns_error_response(context):
+    assert hasattr(context, 'response'), "No response from server"
+    assert hasattr(context, 'result'), "No result in response"
+    assert context.response.status_code == 200, f"Unexpected status code: {context.response.status_code}"
+    assert "error" in context.result, "No error in response"
+    assert context.result["error"], "Empty error message"
+
 def cleanup_resources(context):
 	"""Cleaning up resources after test completion"""
 	for attr in ['temp_file_path', 'valid_task', 'invalid_task', 'corrupted_file']:
@@ -382,4 +407,17 @@ def cleanup_resources(context):
 			context.server_process.terminate()
 			context.server_process.wait(timeout=5)
 		except Exception as e:
-			print(f"Error terminating the server: {e}") 
+			print(f"Error terminating the server: {e}")
+
+def _create_test_python_file(content, delete=False):
+    """Creates a temporary Python file with the specified contents"""
+    task_id = str(uuid.uuid4()).replace('-', '')
+    uploads_dir = '/uploads'
+    task_dir = os.path.join(uploads_dir, task_id)
+    os.makedirs(task_dir, exist_ok=True)
+    
+    file_path = os.path.join(task_dir, 'script.py')
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    print(f"Created test file at: {file_path}")
+    return file_path

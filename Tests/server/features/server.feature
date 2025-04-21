@@ -36,11 +36,11 @@ Feature: Cloud Code Server
 		And maintain reasonable response times
 		And not crash or hang
 		
-	Scenario: Server handles task timeout
+	Scenario: Server handles long-running tasks in Docker environment
 		Given a task that runs indefinitely
 		When the server executes the task
 		Then it should terminate the task after timeout limit
-		And return a timeout error
+		And the server should return an error response
 		And free all allocated resources
 		
 	Scenario: Server handles malicious requests

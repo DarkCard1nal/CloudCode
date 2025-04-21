@@ -1,40 +1,15 @@
 import os
 from Client.client import CloudComputeClient
 
-from Tests.steps.common_steps import step_server_running_with_feature
-
-def cleanup_resources(context):
-	"""Cleaning up resources after test completion"""
-	for attr in ['temp_file_path', 'valid_task', 'invalid_task', 'corrupted_file', 
-				'oversized_file', 'high_priority_task', 'mp_task']:
-		if hasattr(context, attr):
-			file_path = getattr(context, attr)
-			if file_path and os.path.exists(file_path):
-				try:
-					os.unlink(file_path)
-				except Exception as e:
-					print(f"Error removing {attr}: {e}")
-	
-	if hasattr(context, 'background_tasks'):
-		for thread, file_path in context.background_tasks:
-			if file_path and os.path.exists(file_path):
-				try:
-					os.unlink(file_path)
-				except Exception as e:
-					print(f"Error removing background task: {e}")
-	
-	if hasattr(context, 'server_process') and context.server_process:
-		try:
-			context.server_process.terminate()
-			context.server_process.wait(timeout=5)
-		except Exception as e:
-			print(f"Error terminating the server: {e}")
-
+from Tests.common.steps.common_steps import step_server_running_with_feature, cleanup_resources
 
 def before_all(context):
 	"""Function called before all tests"""
-	context.config.paths.append('Tests/steps')
-	steps_dir = 'Tests/steps'
+	context.config.paths.append('Tests/common/steps')
+	context.config.paths.append('Tests/server/features/steps')
+	context.config.paths.append('Tests/client/features/steps')
+	
+	steps_dir = 'Tests/common/steps'
 	if os.path.exists(steps_dir):
 		common_steps_path = os.path.join(steps_dir, 'common_steps.py')
 		if os.path.exists(common_steps_path):
