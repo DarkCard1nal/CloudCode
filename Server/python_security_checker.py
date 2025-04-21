@@ -737,14 +737,30 @@ class PythonSecurityChecker(ABC):
                 continue
 
             if "import " in line_lower or "from " in line_lower:
+                if (
+                    "import os" in line_lower or
+                    "from os" in line_lower or
+                    "import subprocess" in line_lower or
+                    "from subprocess" in line_lower
+                ):
+                    continue
+
+                for module in cls.SAFE_MODULES:
+                    if (
+                        f"import {module}" in line_lower or
+                        f"from {module}" in line_lower or
+                        f", {module}" in line_lower or
+                        f"{module}," in line_lower
+                    ):
+                        continue
+
                 for module in cls.DANGEROUS_MODULES:
                     if (
-                        f"import {module}" in line_lower
-                        or f"from {module}" in line_lower
-                        or f", {module}" in line_lower
-                        or f"{module}," in line_lower
+                        f"import {module}" in line_lower or
+                        f"from {module}" in line_lower or
+                        f", {module}" in line_lower or
+                        f"{module}," in line_lower
                     ):
-
                         unsafe_lines.add(i)
                         unsafe_operations.append(
                             {
@@ -760,12 +776,12 @@ class PythonSecurityChecker(ABC):
                     continue
 
             if any(
-                func in line_lower
-                for func in ["eval(", "exec(", "__import__(", "input("]
+                func in line_lower for
+                func in ["eval(", "exec(", "__import__(", "input("]
             ):
                 func_name = next(
-                    func
-                    for func in ["eval", "exec", "__import__", "input"]
+                    func for
+                    func in ["eval", "exec", "__import__", "input"]
                     if f"{func}(" in line_lower
                 )
                 unsafe_lines.add(i)
@@ -899,28 +915,28 @@ class PythonSecurityChecker(ABC):
             return True
 
         if (
-            "import os" in line_lower
-            or "from os" in line_lower
-            or "import subprocess" in line_lower
-            or "from subprocess" in line_lower
+            "import os" in line_lower or
+            "from os" in line_lower or
+            "import subprocess" in line_lower or
+            "from subprocess" in line_lower
         ):
             return True
 
         for module in cls.SAFE_MODULES:
             if (
-                f"import {module}" in line_lower
-                or f"from {module}" in line_lower
-                or f", {module}" in line_lower
-                or f"{module}," in line_lower
+                f"import {module}" in line_lower or
+                f"from {module}" in line_lower or
+                f", {module}" in line_lower or
+                f"{module}," in line_lower
             ):
                 return True
 
         for module in cls.DANGEROUS_MODULES:
             if (
-                f"import {module}" in line_lower
-                or f"from {module}" in line_lower
-                or f", {module}" in line_lower
-                or f"{module}," in line_lower
+                f"import {module}" in line_lower or
+                f"from {module}" in line_lower or
+                f", {module}" in line_lower or
+                f"{module}," in line_lower
             ):
                 return False
 

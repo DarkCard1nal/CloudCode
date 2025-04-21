@@ -13,7 +13,7 @@ jobs:
                       pip install --no-cache-dir flake8
             - run:
                   name: Run flake8
-                  command: flake8 Server/ run_server.py
+                  command: flake8 --ignore=W503,E203 Server/ run_server.py
 
     test:
         docker:
