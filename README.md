@@ -66,7 +66,15 @@ docker build -t <YOUR-USER-NAME>/cloud_code_server:latest -t <YOUR-USER-NAME>/cl
     image: <YOUR-USER-NAME>/cloud_code_server:latest
     ```
 
-### Step 2: Start the Server
+### Step 2: Create Volume
+
+Before starting the server for the first time, create a Docker volume for uploads:
+
+```sh
+docker volume create --name cloudcode_uploads
+```
+
+### Step 3: Start the Server
 
 To run the server in different modes, use:
 
@@ -81,7 +89,21 @@ To run the server in different modes, use:
 
 The `-d` flag runs the containers in the background.
 
-### Step 3: Stop and Restart the Server
+### Step 4: Access the Web Interface
+
+After starting the server, you can access the web interface at:
+
+```
+http://localhost:5000
+```
+
+The web interface allows you to:
+- Upload Python code files
+- Enter an API key (required for code execution)
+- Execute the code and view the results
+- Download files that were created during execution
+
+### Step 5: Stop and Restart the Server
 
 -   Stop all running containers:
     ```sh

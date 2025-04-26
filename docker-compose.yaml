@@ -11,6 +11,7 @@ services:
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
       - ./Tasks:/app/Tasks
+      - ./WebClient:/app/WebClient
     environment:
       - DEBUG_MODE=false
       - WATCH_MODE=false
@@ -25,6 +26,7 @@ services:
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
       - ./Tasks:/app/Tasks
+      - ./WebClient:/app/WebClient
     environment:
       - DEBUG_MODE=true
       - WATCH_MODE=true
@@ -44,6 +46,7 @@ services:
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
       - ./Tasks:/app/Tasks
+      - ./WebClient:/app/WebClient
     environment:
       - APP_DEBUG=true
       - PYTHONPATH=/app
