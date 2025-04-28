@@ -16,6 +16,7 @@ COPY Tests/environment.py ./Tests/
 COPY Tests/utils ./Tests/utils/
 COPY Tests/common/utils ./Tests/common/utils/
 COPY behave.ini ./
+COPY WebClient ./WebClient/
 
 # Copy requirements.txt into the container
 COPY requirements.txt .
