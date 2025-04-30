@@ -32,12 +32,12 @@ class CodeExecutionServer:
 
             if not auth_header or not auth_header.startswith("Bearer "):
                 return jsonify({"error": "Missing or malformed API key"}), 401
-            
+
             api_key = auth_header.replace("Bearer ", "").strip()
 
             if not self.db.is_api_key_valid(api_key):
                 return jsonify({"error": "Invalid API key"}), 403
-            
+
             if "file" not in request.files:
                 return jsonify({"error": "No file uploaded"}), 400
 

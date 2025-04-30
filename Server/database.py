@@ -1,6 +1,7 @@
 import pyodbc
 import os
 
+
 class Database:
     def __init__(self, server, database, user, password):
         self.connection = self._connect(server, database, user, password)
