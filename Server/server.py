@@ -1,3 +1,4 @@
+from Server.database import Database
 from flask import Flask, request, jsonify, send_from_directory
 from Server.config import Config
 from Server.executor import CodeExecutor
@@ -10,6 +11,13 @@ class CodeExecutionServer:
     def __init__(self):
         self.app = Flask(__name__)
 
+        self.db = Database(
+            server=Config.DB_SERVER,
+            database=Config.DB_NAME,
+            user=Config.DB_USER,
+            password=Config.DB_PASSWORD
+        )
+
         CORS(self.app)
 
         self.setup_routes()
@@ -20,6 +28,19 @@ class CodeExecutionServer:
         @self.app.route("/execute", methods=["POST"])
         def execute():
             """Processes requests for code execution."""
+            auth_header = request.headers.get("Authorization")
+
+            if not auth_header or not auth_header.startswith("Bearer "):
+                return jsonify({"error": "Missing or malformed API key"}), 401
+            
+            api_key = auth_header.replace("Bearer ", "").strip()
+
+            if not self.db.is_api_key_valid(api_key):
+                return jsonify({"error": "Invalid API key"}), 403
+            
+            if "file" not in request.files:
+                return jsonify({"error": "No file uploaded"}), 400
+
             result = CodeExecutor.execute_code(request.files.get("file"))
             return jsonify(result)
 

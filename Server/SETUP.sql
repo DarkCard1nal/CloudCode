@@ -1,0 +1,12 @@
+IF NOT EXISTS (
+    SELECT * FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'Users'
+)
+BEGIN
+    CREATE TABLE Users (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        email NVARCHAR(30) NOT NULL,
+        username NVARCHAR(30) NOT NULL,
+        api_key NVARCHAR(30) NOT NULL UNIQUE
+    );
+END;
