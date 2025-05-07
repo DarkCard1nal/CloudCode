@@ -58,7 +58,7 @@ class CodeExecutionServer:
 
             result = CodeExecutor.execute_code(file)
             return jsonify(result)
-        
+
         @self.app.route("/register", methods=["POST"])
         def register_user():
             """Registers new user with username, email and generated API key."""
@@ -70,7 +70,7 @@ class CodeExecutionServer:
 
             if not username or not email or not api_key:
                 return jsonify({"error": "Missing required fields"}), 400
-            
+
             try:
                 self.db.add_user(username, email, api_key)
                 return jsonify({"message": "User registered successfully"}), 200
