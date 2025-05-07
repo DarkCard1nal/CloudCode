@@ -67,6 +67,23 @@
         </div>
     </div>
 
+    <button id="registerBtn" class="register-button">
+        <i class="fas fa-user-plus"></i>
+    </button>
+
+    <div id="registrationModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">&times;</span>
+            <h2>Registration</h2>
+            <form id="registrationForm">
+                <input type="text" id="username" placeholder="User name" required>
+                <input type="email" id="email" placeholder="Email" required>
+                <button type="submit" class="submit-btn">Get API key</button>
+            </form>
+            <div id="generatedKey" class="generated-key"></div>
+        </div>
+    </div>
+
     <script src="script.js" defer></script>
 </body>
 

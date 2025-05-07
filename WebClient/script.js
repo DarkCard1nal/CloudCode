@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileNameSpan = document.getElementById('fileName');
     const deleteFileBtn = document.getElementById('deleteFileBtn');
     const toggleApiKeyButton = document.getElementById('toggleApiKey');
+    const registerBtn = document.getElementById('registerBtn');
+    const modal = document.getElementById('registrationModal');
+    const closeModal = document.getElementById('closeModal');
+    const registrationForm = document.getElementById('registrationForm');
+    const generatedKeyDiv = document.getElementById('generatedKey');
 
     let currentFile = null;
     let currentFileUrl = null;
@@ -141,5 +146,58 @@ document.addEventListener('DOMContentLoaded', () => {
         const icon = toggleApiKeyButton.querySelector('i');
         icon.classList.toggle('fa-eye', !isPassword);
         icon.classList.toggle('fa-eye-slash', isPassword);
+    });
+
+    registerBtn.addEventListener('click', () =>{
+        modal.style.display = 'block';
+    });
+
+    closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+        registrationForm.reset();
+        generatedKeyDiv.textContent = '';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+            registrationForm.reset();
+            generatedKeyDiv.textContent = '';
+        }
+    });
+
+    registrationForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
+
+        if (username && email) {
+            const generatedKey = 'api_' + Math.random().toString(36).substring(2, 15);
+            generatedKeyDiv.innerHTML = `Your API key: <br><code>${generatedKey}</code>`;
+            apiKeyInput.value = generatedKey;
+
+            fetch('http://localhost:5000/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    api_key: generatedKey
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert("Error: " + data.error);
+                } else {
+                    console.log("User has been added");
+                }
+            })
+            .catch(err => {
+                console.error("Response error:", err);
+            })
+        }
     });
 });

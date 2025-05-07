@@ -14,4 +14,4 @@ if __name__=="__main__":
     api_key = "my_secret_key"
 
     db.add_user(username, email, api_key)
-    print(f"Користувача додано")
+    print(f"User has been added!")
