@@ -34,6 +34,9 @@ jobs:
                   name: Create external volume for tests
                   command: docker volume create cloudcode_uploads
             - run:
+                  name: Create external volume for tests
+                  command: docker volume create cloudcode_sql
+            - run:
                   name: Run tests using docker compose
                   command: |
                       docker compose --profile testing up --abort-on-container-exit
