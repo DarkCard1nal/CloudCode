@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const xhr = new XMLHttpRequest();
             xhr.open('POST', backendProcessUrl, true);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + apiKey);
 
             xhr.onload = function () {
                 hideLoading();
@@ -172,27 +173,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = document.getElementById('email').value.trim();
 
         if (username && email) {
-            const generatedKey = 'api_' + Math.random().toString(36).substring(2, 15);
-            generatedKeyDiv.innerHTML = `Your API key: <br><code>${generatedKey}</code>`;
-            apiKeyInput.value = generatedKey;
-
             fetch('http://localhost:5000/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    username: username,
-                    email: email,
-                    api_key: generatedKey
-                })
+                body: JSON.stringify({username, email})
             })
             .then(res => res.json())
             .then(data => {
                 if (data.error) {
                     alert("Error: " + data.error);
                 } else {
-                    console.log("User has been added");
+                    generatedKeyDiv.innerHTML = `Your API key: <br><code>${data.api_key}</code>`;
+                    apiKeyInput.value = data.api_key;
                 }
             })
             .catch(err => {

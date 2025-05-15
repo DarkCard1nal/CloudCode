@@ -3,6 +3,15 @@
 # Use the official Python 3.10.6 slim image as the base image
 FROM python:3.10.6-slim
 
+RUN apt-get update && apt-get install -y \
+    curl gnupg apt-transport-https ca-certificates \
+    gcc g++ \
+    unixodbc unixodbc-dev \
+    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql17 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory inside the container
 WORKDIR /app
 
@@ -30,6 +39,7 @@ EXPOSE 5000
 
 # (Optional) Declare a volume for persistent uploads
 VOLUME [ "/app/uploads" ]
+VOLUME [ "/app/cloudcode_sql" ]
 
 # Define build arguments and environment variable for debug mode
 ARG DEBUG=false
@@ -44,4 +54,4 @@ ENV PYTHONPATH=/app
 
 # Run the server. If DEBUG_MODE is true, the --debug flag is added.
 # You can also rely on Flask's auto-reload via FLASK_ENV and FLASK_DEBUG environment variables.
-CMD ["sh", "-c", "python run_server.py ${DEBUG_MODE:+--debug}"]
+CMD ["sh", "-c", "cp /app/Server/SETUP.SQL /cloudcode_sql/SETUP.SQL && python run_server.py ${DEBUG_MODE:+--debug}"]

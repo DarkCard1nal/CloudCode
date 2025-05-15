@@ -11,10 +11,11 @@ services:
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
       - ./Tasks:/app/Tasks
+      - cloudcode_sql:/cloudcode_sql
     environment:
       - DEBUG_MODE=false
       - WATCH_MODE=false
-      - DB_SERVER=mssql;
+      - DB_SERVER=mssql
       - DB_USER=sa
       - DB_PASSWORD=YourStrong!Passw0rd
       - DB_NAME=cloudcode
@@ -32,12 +33,13 @@ services:
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
       - ./Tasks:/app/Tasks
+      - cloudcode_sql:/cloudcode_sql
     environment:
       - DEBUG_MODE=true
       - WATCH_MODE=true
       - FLASK_ENV=development
       - FLASK_DEBUG=1
-      - DB_SERVER=mssql;
+      - DB_SERVER=mssql
       - DB_USER=sa
       - DB_PASSWORD=YourStrong!Passw0rd
       - DB_NAME=cloudcode
@@ -57,6 +59,7 @@ services:
       - "1433:1433"
     volumes:
       - mssql-data:/var/opt/mssql
+      - cloudcode_sql:/cloudcode_sql
 
   db-init:
     image: mcr.microsoft.com/mssql-tools
@@ -64,7 +67,7 @@ services:
       - mssql
     restart: "no"
     volumes:
-      - ./Server/SETUP.sql:/tmp/SETUP.sql:ro
+      - cloudcode_sql:/cloudcode_sql
     command: >
       /bin/bash -e -c "
         for i in {1..30}; do
@@ -79,7 +82,7 @@ services:
           END;
         \"
 
-        /opt/mssql-tools/bin/sqlcmd -S mssql -d cloudcode -U sa -P 'YourStrong!Passw0rd' -i /tmp/SETUP.sql
+        /opt/mssql-tools/bin/sqlcmd -S mssql -d cloudcode -U sa -P 'YourStrong!Passw0rd' -i /tmp/SETUP.SQL
       "
     networks:
       - default
@@ -129,3 +132,6 @@ volumes:
     name: cloudcode_uploads
     external: true
   mssql-data:
+  cloudcode_sql:
+    name: cloudcode_sql
+    external: true

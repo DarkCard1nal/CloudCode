@@ -5,8 +5,8 @@ IF NOT EXISTS (
 BEGIN
     CREATE TABLE Users (
         id INT IDENTITY(1,1) PRIMARY KEY,
-        email NVARCHAR(30) NOT NULL,
-        username NVARCHAR(30) NOT NULL,
+        email NVARCHAR(30) NOT NULL UNIQUE,
+        username NVARCHAR(30) NOT NULL UNIQUE,
         api_key NVARCHAR(30) NOT NULL UNIQUE
     );
 END;
