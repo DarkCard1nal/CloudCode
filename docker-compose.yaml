@@ -82,7 +82,7 @@ services:
           END;
         \"
 
-        /opt/mssql-tools/bin/sqlcmd -S mssql -d cloudcode -U sa -P 'YourStrong!Passw0rd' -i /tmp/SETUP.SQL
+        /opt/mssql-tools/bin/sqlcmd -S mssql -d cloudcode -U sa -P 'YourStrong!Passw0rd' -i /tmp/SETUP.sql
       "
     networks:
       - default

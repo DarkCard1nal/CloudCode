@@ -21,7 +21,7 @@ class Database:
         )
 
     def _ensure_tables(self):
-        path = "/cloudcode_sql/SETUP.SQL"
+        path = "/cloudcode_sql/SETUP.sql"
         with open(path, "r") as file:
             sql = file.read()
             cursor = self.connection.cursor()

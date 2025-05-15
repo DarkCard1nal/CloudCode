@@ -52,4 +52,4 @@ ENV PYTHONPATH=/app
 
 # Run the server. If DEBUG_MODE is true, the --debug flag is added.
 # You can also rely on Flask's auto-reload via FLASK_ENV and FLASK_DEBUG environment variables.
-CMD ["sh", "-c", "cp /app/Server/SETUP.SQL /cloudcode_sql/SETUP.SQL && python run_server.py ${DEBUG_MODE:+--debug}"]
+CMD ["sh", "-c", "cp /app/Server/SETUP.sql /cloudcode_sql/SETUP.sql && python run_server.py ${DEBUG_MODE:+--debug}"]
