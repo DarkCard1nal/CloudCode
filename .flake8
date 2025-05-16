@@ -1,4 +1,4 @@
 [flake8]
-ignore = W191,E101,E501,W292,E122,W504,E124,E125,E129
+ignore = W191,E101,E501,W292,E122,W504,E124,E125,E129,W503,E203,E501
 max-line-length = 120
 exclude = .git,__pycache__,env,venv,.venv,build,dist
