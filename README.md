@@ -74,6 +74,12 @@ Before starting the server for the first time, create a Docker volume for upload
 docker volume create --name cloudcode_uploads
 ```
 
+Also create a Docker volume for SQL:
+
+```sh
+docker volume create --name cloudcode_sql
+```
+
 ### Step 3: Start the Server
 
 To run the server in different modes, use:
