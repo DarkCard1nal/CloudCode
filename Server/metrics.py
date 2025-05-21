@@ -1,6 +1,7 @@
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from flask import Response
 
+
 class Metrics:
     def __init__(self):
         self.request_count = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint'])

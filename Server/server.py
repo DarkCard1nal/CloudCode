@@ -48,9 +48,9 @@ class CodeExecutionServer:
 			"""Processes requests for code execution."""
 			start_time = time.time()
 			self.metrics.request_count.labels(method="POST", endpoint="/execute").inc()
-	
+
 			result = CodeExecutor.execute_code(request.files.get("file"))
-			
+
 			latency = time.time() - start_time
 			self.metrics.request_latency.labels(endpoint="/execute").observe(latency)
 
@@ -62,12 +62,12 @@ class CodeExecutionServer:
 
 			self.metrics.success_count.labels(method="POST", endpoint="/execute").inc()
 			return jsonify(result), 200
-			
+
 		@self.app.route("/metrics", methods=["GET"])
 		def metrics():
 			"""Endpoint for Prometheus to scrape metrics."""
 			return self.metrics.get_metrics()
-		
+
 		for code in Config.ERRORS:
 			self.app.register_error_handler(code, self.handle_errors)
 
