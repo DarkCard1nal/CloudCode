@@ -4,33 +4,48 @@ services:
   server:
     # Production (release) mode: minimum set of mounts,
     # all data (e.g. uploads) is stored in volume.
-    image: thisisvynokurov/cloud_code_server:latest
+    image: card1nal/cloud_code_server:latest
     ports:
       - "5000:5000"
     volumes:
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
       - ./Tasks:/app/Tasks
+      - cloudcode_sql:/cloudcode_sql
     environment:
       - DEBUG_MODE=false
       - WATCH_MODE=false
+      - DB_SERVER=mssql
+      - DB_USER=sa
+      - DB_PASSWORD=YourStrong!Passw0rd
+      - DB_NAME=cloudcode
+    depends_on:
+      - mssql
+      - db-init
 
   develop:
     # Development mode: debugging is enabled, source files are mounted,
     # so that changes are immediately reflected without rebuilding the container.
-    image: thisisvynokurov/cloud_code_server:latest
+    image: card1nal/cloud_code_server:latest
     ports:
       - "5000:5000"
     volumes:
-      - .:/app
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
       - ./Tasks:/app/Tasks
+      - cloudcode_sql:/cloudcode_sql
     environment:
       - DEBUG_MODE=true
       - WATCH_MODE=true
       - FLASK_ENV=development
       - FLASK_DEBUG=1
+      - DB_SERVER=mssql
+      - DB_USER=sa
+      - DB_PASSWORD=YourStrong!Passw0rd
+      - DB_NAME=cloudcode
+    depends_on:
+      - mssql
+      - db-init
     profiles:
       - develop
 
@@ -51,17 +66,56 @@ services:
      - '3000:3000'
     volumes:
       - grafana-storage:/var/lib/grafana
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourStrong!Passw0rd"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+      - cloudcode_sql:/cloudcode_sql
+
+  db-init:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - mssql
+    restart: "no"
+    volumes:
+      - cloudcode_sql:/cloudcode_sql
+    command: >
+      /bin/bash -e -c "
+        for i in {1..30}; do
+          /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P 'YourStrong!Passw0rd' -Q 'SELECT 1' && break
+          sleep 2
+        done
+
+        /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P 'YourStrong!Passw0rd' -Q \"
+          IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'cloudcode')
+          BEGIN
+            CREATE DATABASE cloudcode;
+          END;
+        \"
+
+        /opt/mssql-tools/bin/sqlcmd -S mssql -d cloudcode -U sa -P 'YourStrong!Passw0rd' -i /cloudcode_sql/SETUP.sql
+      "
+    networks:
+      - default
       
   # Basic configuration for all test services
   test-base: &test-base
-    image: thisisvynokurov/cloud_code_server:latest
+    image: card1nal/cloud_code_server:latest
+    working_dir: /app
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - .:/app
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./Tasks:/app/Tasks
     environment:
       - APP_DEBUG=true
       - PYTHONPATH=/app
@@ -71,28 +125,32 @@ services:
     profiles:
       - testing
       
-  # Running all tests
-  tests:
+  # Running server tests
+  tests-server:
     <<: *test-base
-    command: ["/bin/bash", "-c", "echo 'Running all tests...' && echo 'Running behave tests...' && behave Tests/features && echo 'Running unit tests...' && python Tests/unit/run_unit_tests.py && echo 'Running integration tests...' && python -m unittest discover -s Tests/integration"]
-
-  # Running only behave tests
-  tests-behave:
-    <<: *test-base
-    command: ["behave", "Tests/features"]
+    command: ["python", "Tests/run_server_tests.py"]
     
-  # Running only unit tests
-  tests-unit:
+  # Running server unit tests
+  tests-server-unit:
     <<: *test-base
-    command: ["python", "Tests/unit/run_unit_tests.py"]
+    command: ["python", "-m", "unittest", "discover", "-s", "Tests/server/unit"]
     
-  # Running only integration tests
-  tests-integration:
+  # Running server integration tests
+  tests-server-integration:
     <<: *test-base
-    command: ["python", "-m", "unittest", "discover", "-s", "Tests/integration"]
+    command: ["python", "-m", "unittest", "discover", "-s", "Tests/server/integration"]
+    
+  # Running server behave tests
+  tests-server-behave:
+    <<: *test-base
+    command: ["behave", "Tests/server/features"]
 
 volumes:
   uploads:
-    external: true
     name: cloudcode_uploads
+    external: true
+  mssql-data:
+  cloudcode_sql:
+    name: cloudcode_sql
+    external: true
   grafana-storage: {}

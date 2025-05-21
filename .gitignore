@@ -1,5 +1,2 @@
-Server/__pycache__/
-Client/__pycache__/
-Prometheus/data
-.venv
+**/__pycache__/
 uploads

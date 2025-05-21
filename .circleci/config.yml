@@ -1,0 +1,64 @@
+version: 2.1
+
+jobs:
+    lint:
+        docker:
+            - image: python:3.10.6-slim
+        working_directory: /app
+        steps:
+            - checkout
+            - run:
+                  name: Install flake8
+                  command: |
+                      pip install --no-cache-dir flake8
+            - run:
+                  name: Run flake8
+                  command: flake8 Server/ run_server.py
+
+    test:
+        docker:
+            - image: docker:20.10.24-dind
+        working_directory: /app
+        steps:
+            - checkout
+            - setup_remote_docker:
+                  docker_layer_caching: true
+            - run:
+                  name: Install Docker Compose plugin
+                  command: |
+                      apk update && apk add docker-cli-compose
+            - run:
+                  name: Pull prebuilt server image
+                  command: docker pull card1nal/cloud_code_server:latest
+            - run:
+                  name: Create external volume for tests
+                  command: docker volume create cloudcode_uploads
+            - run:
+                  name: Create external volume for tests
+                  command: docker volume create cloudcode_sql
+            - run:
+                  name: Run tests using docker compose
+                  command: |
+                      docker compose --profile testing up --abort-on-container-exit
+                      EXIT_CODE=$?
+                      mkdir -p test-results
+                      docker cp $(docker ps -aqf name=tests-server):/app/test-results ./test-results || true
+                      if [ $EXIT_CODE -ne 0 ]; then exit $EXIT_CODE; fi
+            - store_test_results:
+                  path: test-results
+            - store_artifacts:
+                  path: test-results
+                  destination: test-results
+            - run:
+                  name: Cleanup
+                  command: |
+                      docker compose down --volumes --remove-orphans
+                      docker volume rm cloudcode_uploads || true
+
+workflows:
+    ci_pipeline:
+        jobs:
+            - lint
+            - test:
+                  requires:
+                      - lint

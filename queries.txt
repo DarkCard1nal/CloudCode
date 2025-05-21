@@ -9,3 +9,4 @@ sum(rate(http_requests_failure_total[10m])) / sum(rate(http_requests_total[10m])
 
 Latency:
 histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[10m])) by (le))
+histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[10m])) by (le))
