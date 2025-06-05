@@ -21,6 +21,7 @@ COPY run_server.py ./
 COPY Server ./Server/
 COPY Tests/server ./Tests/server/
 COPY Tests/run_server_tests.py ./Tests/
+COPY Tests/test_helpers.py ./Tests/
 COPY Tests/environment.py ./Tests/
 COPY behave.ini ./
 COPY WebClient ./WebClient/

@@ -1,4 +1,5 @@
 import os
+from test_helpers import wait_for_server
 from Client.client import CloudComputeClient
 
 from Tests.common.steps.common_steps import (
@@ -9,6 +10,12 @@ from Tests.common.steps.common_steps import (
 
 def before_all(context):
     """Function called before all tests"""
+    if not wait_for_server("http://server:5000", max_attempts=30, delay=1):
+        raise RuntimeError("Server is not available for testing. Please make sure the server container is running.")
+    
+    test_dir = "/uploads/behave_tests"
+    os.makedirs(test_dir, exist_ok=True)
+    
     context.config.paths.append("Tests/common/steps")
     context.config.paths.append("Tests/server/features/steps")
     context.config.paths.append("Tests/client/features/steps")

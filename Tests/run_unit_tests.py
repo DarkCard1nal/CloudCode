@@ -1,14 +1,11 @@
-#!/usr/bin/env python3
 import unittest
 import os
-import sys
+from test_helpers import setup_test_paths
 
 
 def run_tests():
-    """Runs all unit tests from the tests directory structure"""
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.dirname(current_dir)
-    sys.path.append(parent_dir)
+    """Runs all unit tests from the test directory structure"""
+    current_dir, parent_dir = setup_test_paths()
 
     test_paths = [
         os.path.join(current_dir, "server", "unit"),
@@ -35,4 +32,5 @@ def run_tests():
 
 
 if __name__ == "__main__":
+    import sys
     sys.exit(run_tests())

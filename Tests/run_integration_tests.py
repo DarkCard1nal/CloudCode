@@ -1,13 +1,11 @@
 import unittest
 import os
-import sys
+from test_helpers import setup_test_paths
 
 
 def run_tests():
-    """Runs all integration tests from the tests directory structure"""
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.dirname(current_dir)
-    sys.path.append(parent_dir)
+    """Runs all integration tests from the test directory structure"""
+    current_dir, parent_dir = setup_test_paths()
 
     test_paths = [
         os.path.join(current_dir, "server", "integration"),
@@ -30,4 +28,5 @@ def run_tests():
 
 
 if __name__ == "__main__":
+    import sys
     sys.exit(run_tests())

@@ -8,10 +8,7 @@ import time
 import re
 
 from Client.client import CloudComputeClient
-from Tests.common_steps import (
-    step_server_running,
-    step_server_running_with_feature,
-    step_client_connected,
+from Tests.common.steps.common_steps import (
     step_client_initialized,
 )
 

@@ -1,22 +1,28 @@
 import unittest
-import os
 import tempfile
 import shutil
-import sys
 import logging
+import os
+import sys
 
 logging.disable(logging.CRITICAL)
 
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, root_dir)
 
+tests_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, tests_dir)
+
+from server.test_helpers import setup_test_environment
+
+setup_test_environment()
+
 from Server.python_security_checker import PythonSecurityChecker
 
 
 class TestSecurityCheckerReal(unittest.TestCase):
     """
-    Real tests for PythonSecurityChecker without mocks.
-    These tests verify the actual security analysis logic.
+    Tests for PythonSecurityChecker
     """
 
     def setUp(self):

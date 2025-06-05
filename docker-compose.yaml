@@ -98,12 +98,19 @@ services:
       - uploads:/uploads
       - /var/run/docker.sock:/var/run/docker.sock
       - ./Tasks:/app/Tasks
+      - cloudcode_sql:/cloudcode_sql
     environment:
       - APP_DEBUG=true
       - PYTHONPATH=/app
       - DEBUG_MODE=true
+      - DB_SERVER=mssql
+      - DB_USER=sa
+      - DB_PASSWORD=YourStrong!Passw0rd
+      - DB_NAME=cloudcode
     depends_on:
       - server
+      - mssql
+      - db-init
     profiles:
       - testing
       
